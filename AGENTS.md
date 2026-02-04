@@ -6,6 +6,8 @@ These rules apply to all work in this repository.
 - Ensure a GitHub repo exists before writing code.
 - Commit in small, meaningful checkpoints.
 - Never push directly to `main`. Create a PR and wait for approval before merging.
+- Prefer parallel PRs for independent changes.
+- If changes conflict, continue on the same branch until resolved.
 - Each commit must include a clear summary and scope.
 
 ## Testing and Verification
