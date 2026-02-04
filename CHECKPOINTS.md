@@ -9,12 +9,14 @@
   - License
 
 ## Checkpoint 2: App Shell
-- Status: blocked (Xcode required for XCTest + manual smoke run)
+- Status: completed (2026-02-04)
 - Scope:
   - SwiftUI app skeleton
   - Menu bar icon + menu
   - Basic window for history/settings
   - Basic smoke test plan
+  - Tests: `swift test`
+  - Manual smoke: `swift run`
 
 ## Checkpoint 3: Accessibility + Selection Capture
 - Status: pending

@@ -23,17 +23,33 @@ final class StatusBarController: NSObject {
         }
 
         let menu = NSMenu()
-        menu.addItem(makeItem(title: "Open History", action: #selector(openHistory), key: "h"))
-        menu.addItem(makeItem(title: "Settings", action: #selector(openSettings), key: ","))
-        menu.addItem(.separator())
-        menu.addItem(makeItem(title: "Quit", action: #selector(quitApp), key: "q"))
+        for item in StatusBarMenuModel.defaultItems {
+            if item.isSeparator {
+                menu.addItem(.separator())
+                continue
+            }
+
+            let menuItem = NSMenuItem(
+                title: item.title,
+                action: selector(for: item.action),
+                keyEquivalent: item.keyEquivalent
+            )
+            menuItem.target = self
+            menu.addItem(menuItem)
+        }
         statusItem.menu = menu
     }
 
-    private func makeItem(title: String, action: Selector, key: String) -> NSMenuItem {
-        let item = NSMenuItem(title: title, action: action, keyEquivalent: key)
-        item.target = self
-        return item
+    private func selector(for action: StatusBarAction?) -> Selector? {
+        guard let action else { return nil }
+        switch action {
+        case .openHistory:
+            return #selector(openHistory)
+        case .openSettings:
+            return #selector(openSettings)
+        case .quit:
+            return #selector(quitApp)
+        }
     }
 
     @objc private func openHistory() {
