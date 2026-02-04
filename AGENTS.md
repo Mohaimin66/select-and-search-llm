@@ -4,7 +4,10 @@ These rules apply to all work in this repository.
 
 ## Repo + Git Hygiene
 - Ensure a GitHub repo exists before writing code.
-- Commit in small, meaningful checkpoints and push after each checkpoint.
+- Commit in small, meaningful checkpoints.
+- Never push directly to `main`. Create a PR and wait for approval before merging.
+- Prefer parallel PRs for independent changes.
+- If changes conflict, continue on the same branch until resolved.
 - Each commit must include a clear summary and scope.
 
 ## Testing and Verification
@@ -20,4 +23,3 @@ These rules apply to all work in this repository.
 
 ## Permissions
 - Ask before running commands that require elevated permissions or external tools.
-
