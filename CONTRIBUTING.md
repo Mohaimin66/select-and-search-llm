@@ -17,6 +17,7 @@ Thanks for your interest in contributing. This project is early and moving fast.
 - Add integration tests for cross-module flows when applicable.
 - Manually verify UI flows for changes that affect user interaction.
 - Before requesting review, run the test suite locally and note results.
+- XCTest requires Xcode to be installed on macOS.
 
 ## Code Style
 - Prefer clarity over cleverness.

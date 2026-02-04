@@ -26,6 +26,7 @@ Early development. See `PLAN.md` and `CHECKPOINTS.md`.
 - `PLAN.md`
 - `ARCHITECTURE.md`
 - `CHECKPOINTS.md`
+- `SMOKE_TESTS.md`
 
 ## License
 Apache-2.0. See `LICENSE`.
