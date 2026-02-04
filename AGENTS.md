@@ -5,6 +5,7 @@ These rules apply to all work in this repository.
 ## Repo + Git Hygiene
 - Ensure a GitHub repo exists before writing code.
 - Commit in small, meaningful checkpoints.
+- Do not work on `main`. Always create a new branch for changes.
 - Never push directly to `main`. Create a PR and wait for approval before merging.
 - Prefer parallel PRs for independent changes.
 - If changes conflict, continue on the same branch until resolved.
