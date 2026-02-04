@@ -42,6 +42,12 @@
    - Hotkey configuration.
    - Local setup status (Ollama/LM Studio detection + setup guidance).
 
+## Testing & Verification
+- Unit tests (XCTest) for provider logic, context budgeter, and utilities.
+- Integration tests for selection capture + provider pipeline where feasible.
+- Manual verification checklist for UI flows and accessibility behavior.
+- For each change: add/update tests and locally run the relevant suites.
+
 ## Data Flow (Hotkey → Answer)
 1. User selects text.
 2. Hotkey fires.

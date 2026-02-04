@@ -12,6 +12,12 @@ Thanks for your interest in contributing. This project is early and moving fast.
 2. Make focused changes with clear commit messages.
 3. Open a PR with a concise description and screenshots when applicable.
 
+## Testing
+- Add or update unit tests for new logic (XCTest).
+- Add integration tests for cross-module flows when applicable.
+- Manually verify UI flows for changes that affect user interaction.
+- Before requesting review, run the test suite locally and note results.
+
 ## Code Style
 - Prefer clarity over cleverness.
 - Keep UI components small and reusable.

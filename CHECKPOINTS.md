@@ -14,6 +14,7 @@
   - SwiftUI app skeleton
   - Menu bar icon + menu
   - Basic window for history/settings
+  - Basic smoke test plan
 
 ## Checkpoint 3: Accessibility + Selection Capture
 - Status: pending
@@ -21,6 +22,7 @@
   - Accessibility permission flow
   - Read selected text (AX)
   - Clipboard fallback
+  - Unit tests for selection parsing utilities
 
 ## Checkpoint 4: Popover UI
 - Status: pending
@@ -35,6 +37,7 @@
   - Provider protocol
   - Request/response normalization
   - Error handling
+  - Unit tests for request building and error mapping
 
 ## Checkpoint 6: Provider Implementations
 - Status: pending
@@ -42,6 +45,7 @@
   - Gemini 2.5 Flash
   - OpenAI (configurable)
   - Local (Ollama default, LM Studio optional)
+  - Integration tests for mock providers
 
 ## Checkpoint 7: History Store
 - Status: pending
@@ -56,6 +60,7 @@
   - Hotkeys
   - Provider defaults
   - Local setup wizard
+  - Manual verification checklist update
 
 ## Checkpoint 9: Services Menu
 - Status: pending
