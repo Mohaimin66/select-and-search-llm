@@ -1,7 +1,8 @@
 import Foundation
 
 enum StatusBarAction: String {
-    case captureSelection
+    case explainSelection
+    case askSelection
     case openHistory
     case openSettings
     case quit
@@ -34,7 +35,8 @@ struct StatusBarMenuItem: Equatable {
 
 enum StatusBarMenuModel {
     static let defaultItems: [StatusBarMenuItem] = [
-        .action(title: "Capture Selection (Debug)", keyEquivalent: "e", action: .captureSelection),
+        .action(title: "Explain Selection (Debug)", keyEquivalent: "e", action: .explainSelection),
+        .action(title: "Ask About Selection (Debug)", keyEquivalent: "p", action: .askSelection),
         .separator(),
         .action(title: "Open History", keyEquivalent: "h", action: .openHistory),
         .action(title: "Settings", keyEquivalent: ",", action: .openSettings),

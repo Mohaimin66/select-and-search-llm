@@ -5,7 +5,8 @@ Select-and-Search LLM is a macOS menu bar app that captures selected text system
 
 Current implementation status:
 - App shell is implemented.
-- Selection capture is implemented behind a debug menu action (`Capture Selection (Debug)`).
+- Selection capture service is implemented (Accessibility first, clipboard fallback).
+- Popover and prompt bar flows are implemented behind debug menu actions (`Explain Selection (Debug)` and `Ask About Selection (Debug)`).
 
 ## Components
 1. **App Shell**
@@ -26,6 +27,7 @@ Current implementation status:
    - Popover anchored near selection.
    - Prompt bar for editable queries.
    - Response display with copy/follow-up.
+   - Current implementation: floating debug popover near cursor with selection, prompt input (ask mode), and response panel.
 6. **History Store**
    - Local-only storage (Core Data or SQLite).
    - Stores selection, prompt, response, provider, timestamps.
