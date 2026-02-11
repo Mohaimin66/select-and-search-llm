@@ -4,6 +4,7 @@ These rules apply to all work in this repository.
 
 ## Repo + Git Hygiene
 - Ensure a GitHub repo exists before writing code.
+- Do not work on `main`. Always create a new branch for changes.
 - Commit in small, meaningful checkpoints.
 - Never push directly to `main`. Create a PR and wait for approval before merging.
 - Prefer parallel PRs for independent changes.
@@ -18,7 +19,7 @@ These rules apply to all work in this repository.
 - If tests cannot run, document the blocker and request what is needed.
 
 ## Documentation
-- Keep `PLAN.md`, `ARCHITECTURE.md`, and `CHECKPOINTS.md` updated.
+- Keep `ARCHITECTURE.md` updated.
 - Add/update `SMOKE_TESTS.md` for manual verification steps.
 
 ## Permissions

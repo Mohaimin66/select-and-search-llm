@@ -3,7 +3,7 @@
 System-wide text selection explainer for macOS. Select text anywhere (Safari, Chrome, PDF readers, editors) and get an LLM explanation in a small popover.
 
 ## Status
-Early development. See `PLAN.md` and `CHECKPOINTS.md`.
+Early development. See `ARCHITECTURE.md` and `SMOKE_TESTS.md`.
 
 ## MVP Goals
 - Menu bar app with global hotkeys.
@@ -22,10 +22,7 @@ Early development. See `PLAN.md` and `CHECKPOINTS.md`.
 - LM Studio supported (non-default).
 
 ## Docs
-- `PROJECT_OVERVIEW.md`
-- `PLAN.md`
 - `ARCHITECTURE.md`
-- `CHECKPOINTS.md`
 - `SMOKE_TESTS.md`
 
 ## License

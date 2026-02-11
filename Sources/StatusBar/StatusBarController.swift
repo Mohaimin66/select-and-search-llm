@@ -5,11 +5,13 @@ final class StatusBarController: NSObject {
     private(set) var statusItem: NSStatusItem
     private let historyWindowController: HistoryWindowController
     private let settingsWindowController: SettingsWindowController
+    private let selectionCaptureService: SelectionCaptureService
 
     override init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         historyWindowController = HistoryWindowController()
         settingsWindowController = SettingsWindowController()
+        selectionCaptureService = SelectionCaptureService()
         super.init()
         configureStatusItem()
     }
@@ -43,6 +45,8 @@ final class StatusBarController: NSObject {
     private func selector(for action: StatusBarAction?) -> Selector? {
         guard let action else { return nil }
         switch action {
+        case .captureSelection:
+            return #selector(captureSelection)
         case .openHistory:
             return #selector(openHistory)
         case .openSettings:
@@ -50,6 +54,22 @@ final class StatusBarController: NSObject {
         case .quit:
             return #selector(quitApp)
         }
+    }
+
+    @objc private func captureSelection() {
+        guard let result = selectionCaptureService.captureSelection() else {
+            presentCaptureAlert(
+                title: "No Selection Captured",
+                body: "Select text in another app and try again."
+            )
+            return
+        }
+
+        let sourceLabel = result.source == .accessibility ? "Accessibility" : "Clipboard fallback"
+        presentCaptureAlert(
+            title: "Selection Captured (\(sourceLabel))",
+            body: result.text
+        )
     }
 
     @objc private func openHistory() {
@@ -62,5 +82,14 @@ final class StatusBarController: NSObject {
 
     @objc private func quitApp() {
         NSApp.terminate(nil)
+    }
+
+    private func presentCaptureAlert(title: String, body: String) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = body
+        alert.addButton(withTitle: "OK")
+        alert.alertStyle = .informational
+        alert.runModal()
     }
 }
