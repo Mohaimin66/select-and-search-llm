@@ -16,15 +16,21 @@ final class ClipboardSelectionProvider: ClipboardSelectionProviding {
             return nil
         }
 
-        _ = waitForPasteboardChange(
+        defer {
+            snapshot.restore(into: pasteboard)
+        }
+
+        let didChange = waitForPasteboardChange(
             pasteboard: pasteboard,
             baselineChangeCount: baselineChangeCount,
             timeout: 0.35
         )
 
-        let captured = pasteboard.string(forType: .string)
-        snapshot.restore(into: pasteboard)
-        return captured
+        guard didChange else {
+            return nil
+        }
+
+        return pasteboard.string(forType: .string)
     }
 
     private func triggerCopyShortcut() -> Bool {

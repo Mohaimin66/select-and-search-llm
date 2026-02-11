@@ -13,7 +13,7 @@ struct AccessibilityPermissionService: AccessibilityPermissionProviding {
 
     @discardableResult
     func requestIfNeeded() -> Bool {
-        let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
+        let options = ["AXTrustedCheckOptionPrompt" as CFString: true] as CFDictionary
         return AXIsProcessTrustedWithOptions(options)
     }
 }
