@@ -6,12 +6,14 @@ final class StatusBarController: NSObject {
     private let historyWindowController: HistoryWindowController
     private let settingsWindowController: SettingsWindowController
     private let selectionCaptureService: SelectionCaptureService
+    private let selectionPopoverController: SelectionPopoverController
 
     override init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         historyWindowController = HistoryWindowController()
         settingsWindowController = SettingsWindowController()
         selectionCaptureService = SelectionCaptureService()
+        selectionPopoverController = SelectionPopoverController()
         super.init()
         configureStatusItem()
     }
@@ -45,8 +47,10 @@ final class StatusBarController: NSObject {
     private func selector(for action: StatusBarAction?) -> Selector? {
         guard let action else { return nil }
         switch action {
-        case .captureSelection:
-            return #selector(captureSelection)
+        case .explainSelection:
+            return #selector(explainSelection)
+        case .askSelection:
+            return #selector(askSelection)
         case .openHistory:
             return #selector(openHistory)
         case .openSettings:
@@ -56,20 +60,14 @@ final class StatusBarController: NSObject {
         }
     }
 
-    @objc private func captureSelection() {
-        guard let result = selectionCaptureService.captureSelection() else {
-            presentCaptureAlert(
-                title: "No Selection Captured",
-                body: "Select text in another app and try again."
-            )
-            return
-        }
+    @objc private func explainSelection() {
+        guard let result = captureSelectionOrAlert() else { return }
+        selectionPopoverController.present(selectionResult: result, mode: .explain)
+    }
 
-        let sourceLabel = result.source == .accessibility ? "Accessibility" : "Clipboard fallback"
-        presentCaptureAlert(
-            title: "Selection Captured (\(sourceLabel))",
-            body: result.text
-        )
+    @objc private func askSelection() {
+        guard let result = captureSelectionOrAlert() else { return }
+        selectionPopoverController.present(selectionResult: result, mode: .ask)
     }
 
     @objc private func openHistory() {
@@ -91,5 +89,16 @@ final class StatusBarController: NSObject {
         alert.addButton(withTitle: "OK")
         alert.alertStyle = .informational
         alert.runModal()
+    }
+
+    private func captureSelectionOrAlert() -> SelectionCaptureResult? {
+        guard let result = selectionCaptureService.captureSelection() else {
+            presentCaptureAlert(
+                title: "No Selection Captured",
+                body: "Select text in another app and try again."
+            )
+            return nil
+        }
+        return result
     }
 }
