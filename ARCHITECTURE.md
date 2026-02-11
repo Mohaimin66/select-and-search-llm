@@ -3,6 +3,10 @@
 ## Summary
 Select-and-Search LLM is a macOS menu bar app that captures selected text system-wide and returns LLM explanations in a small popover. It uses Accessibility APIs for selection capture, falls back to clipboard where necessary, and supports multiple LLM providers with local-first privacy options.
 
+Current implementation status:
+- App shell is implemented.
+- Selection capture is implemented behind a debug menu action (`Capture Selection (Debug)`).
+
 ## Components
 1. **App Shell**
    - Menu bar app with optional main window (history + settings).
@@ -10,6 +14,7 @@ Select-and-Search LLM is a macOS menu bar app that captures selected text system
 2. **Selection Capture**
    - Primary: Accessibility APIs to read selected text and selection bounds.
    - Fallback: Clipboard copy + restore.
+   - Current surface: debug alert to validate capture source and text.
 3. **Context Budgeter**
    - Applies a token/character budget to limit input size.
    - Default: selection only.
