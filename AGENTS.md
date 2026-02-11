@@ -11,6 +11,10 @@ These rules apply to all work in this repository.
 - If changes conflict, continue on the same branch until resolved.
 - Each commit must include a clear summary and scope.
 - Each PR must include a brief "Thought Process" section with rationale, tradeoffs, and key decisions.
+- Treat CodeRabbit review as a required PR quality gate by default.
+- Wait for CodeRabbit review to complete before requesting merge.
+- If CodeRabbit posts actionable comments, apply fixes, push updates, and re-trigger review (comment if needed).
+- Do not ask for merge approval until CodeRabbit has no actionable comments or the user explicitly waives this gate.
 
 ## Testing and Verification
 - Always add or update unit tests for new logic.
