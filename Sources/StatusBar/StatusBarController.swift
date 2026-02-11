@@ -61,26 +61,12 @@ final class StatusBarController: NSObject {
     }
 
     @objc private func explainSelection() {
-        guard let result = selectionCaptureService.captureSelection() else {
-            presentCaptureAlert(
-                title: "No Selection Captured",
-                body: "Select text in another app and try again."
-            )
-            return
-        }
-
+        guard let result = captureSelectionOrAlert() else { return }
         selectionPopoverController.present(selectionResult: result, mode: .explain)
     }
 
     @objc private func askSelection() {
-        guard let result = selectionCaptureService.captureSelection() else {
-            presentCaptureAlert(
-                title: "No Selection Captured",
-                body: "Select text in another app and try again."
-            )
-            return
-        }
-
+        guard let result = captureSelectionOrAlert() else { return }
         selectionPopoverController.present(selectionResult: result, mode: .ask)
     }
 
@@ -103,5 +89,16 @@ final class StatusBarController: NSObject {
         alert.addButton(withTitle: "OK")
         alert.alertStyle = .informational
         alert.runModal()
+    }
+
+    private func captureSelectionOrAlert() -> SelectionCaptureResult? {
+        guard let result = selectionCaptureService.captureSelection() else {
+            presentCaptureAlert(
+                title: "No Selection Captured",
+                body: "Select text in another app and try again."
+            )
+            return nil
+        }
+        return result
     }
 }

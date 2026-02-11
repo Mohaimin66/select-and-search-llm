@@ -35,6 +35,7 @@ struct SelectionPopoverView: View {
                     Button("Submit Prompt") {
                         viewModel.submitPrompt()
                     }
+                    .disabled(viewModel.promptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
 

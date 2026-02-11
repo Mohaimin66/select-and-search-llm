@@ -6,6 +6,8 @@ final class SelectionPopoverController {
     private var panelController: NSWindowController?
 
     func present(selectionResult: SelectionCaptureResult, mode: SelectionPopoverMode) {
+        dismiss()
+
         let viewModel = SelectionPopoverViewModel(
             selectionResult: selectionResult,
             mode: mode
