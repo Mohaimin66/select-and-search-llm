@@ -10,6 +10,7 @@ These rules apply to all work in this repository.
 - Prefer parallel PRs for independent changes.
 - If changes conflict, continue on the same branch until resolved.
 - Each commit must include a clear summary and scope.
+- Each PR must include a brief "Thought Process" section with rationale, tradeoffs, and key decisions.
 
 ## Testing and Verification
 - Always add or update unit tests for new logic.
