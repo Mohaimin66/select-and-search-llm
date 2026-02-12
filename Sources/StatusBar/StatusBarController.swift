@@ -9,12 +9,12 @@ final class StatusBarController: NSObject {
     private let selectionPopoverController: SelectionPopoverController
     private let settingsStore: AppSettingsStore
 
-    init(settingsStore: AppSettingsStore) {
+    init(settingsStore: AppSettingsStore, historyStore: AppHistoryStore) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        historyWindowController = HistoryWindowController()
+        historyWindowController = HistoryWindowController(historyStore: historyStore)
         settingsWindowController = SettingsWindowController(settingsStore: settingsStore)
         selectionCaptureService = SelectionCaptureService()
-        selectionPopoverController = SelectionPopoverController()
+        selectionPopoverController = SelectionPopoverController(historyStore: historyStore)
         self.settingsStore = settingsStore
         super.init()
         configureStatusItem()
@@ -64,19 +64,25 @@ final class StatusBarController: NSObject {
 
     @objc private func explainSelection() {
         guard let result = captureSelectionOrAlert() else { return }
+        let configuredResponse = makeConfiguredResponseGenerator()
         selectionPopoverController.present(
             selectionResult: result,
             mode: .explain,
-            responseGenerator: makeResponseGenerator()
+            responseGenerator: configuredResponse.generator,
+            providerKind: configuredResponse.providerKind,
+            activeAppName: activeAppName()
         )
     }
 
     @objc private func askSelection() {
         guard let result = captureSelectionOrAlert() else { return }
+        let configuredResponse = makeConfiguredResponseGenerator()
         selectionPopoverController.present(
             selectionResult: result,
             mode: .ask,
-            responseGenerator: makeResponseGenerator()
+            responseGenerator: configuredResponse.generator,
+            providerKind: configuredResponse.providerKind,
+            activeAppName: activeAppName()
         )
     }
 
@@ -112,8 +118,15 @@ final class StatusBarController: NSObject {
         return result
     }
 
-    private func makeResponseGenerator() -> SelectionResponseGenerating {
+    private func makeConfiguredResponseGenerator() -> (generator: SelectionResponseGenerating, providerKind: LLMProviderKind) {
         let configuration = settingsStore.runtimeConfiguration()
-        return SelectionResponseGeneratorFactory.makeDefault(configuration: configuration)
+        return (
+            generator: SelectionResponseGeneratorFactory.makeDefault(configuration: configuration),
+            providerKind: configuration.defaultProvider
+        )
+    }
+
+    private func activeAppName() -> String? {
+        NSWorkspace.shared.frontmostApplication?.localizedName
     }
 }

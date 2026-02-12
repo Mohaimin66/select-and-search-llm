@@ -104,6 +104,47 @@ final class SelectionPopoverViewModelTests: XCTestCase {
         await secondTask.value
         XCTAssertFalse(viewModel.isLoading)
     }
+
+    @MainActor
+    func testSuccessfulAskPersistsHistoryEntry() async {
+        let historyStore = AppHistoryStore(persistence: InMemoryHistoryPersistenceForPopover())
+        let viewModel = SelectionPopoverViewModel(
+            selectionResult: SelectionCaptureResult(text: "sample", source: .accessibility),
+            mode: .ask,
+            responseGenerator: StubGenerator(),
+            normalizer: SelectionTextNormalizer(),
+            historyStore: historyStore,
+            providerKind: .anthropic,
+            activeAppName: "Safari"
+        )
+
+        viewModel.promptText = "question"
+        await viewModel.submitPrompt()
+
+        XCTAssertEqual(historyStore.entries.count, 1)
+        XCTAssertEqual(historyStore.entries.first?.prompt, "question")
+        XCTAssertEqual(historyStore.entries.first?.provider, .anthropic)
+        XCTAssertEqual(historyStore.entries.first?.appName, "Safari")
+    }
+
+    @MainActor
+    func testFailedAskDoesNotPersistHistoryEntry() async {
+        let historyStore = AppHistoryStore(persistence: InMemoryHistoryPersistenceForPopover())
+        let viewModel = SelectionPopoverViewModel(
+            selectionResult: SelectionCaptureResult(text: "sample", source: .accessibility),
+            mode: .ask,
+            responseGenerator: FailingGenerator(),
+            normalizer: SelectionTextNormalizer(),
+            historyStore: historyStore,
+            providerKind: .gemini,
+            activeAppName: "Safari"
+        )
+
+        viewModel.promptText = "question"
+        await viewModel.submitPrompt()
+
+        XCTAssertTrue(historyStore.entries.isEmpty)
+    }
 }
 
 private struct StubGenerator: SelectionResponseGenerating {
@@ -171,4 +212,9 @@ private struct SequencedDelayGenerator: SelectionResponseGenerating {
         try await Task.sleep(nanoseconds: delay)
         return "answer:\(prompt):\(selectionText)"
     }
+}
+
+private final class InMemoryHistoryPersistenceForPopover: HistoryPersisting {
+    func loadEntries() throws -> [HistoryEntry] { [] }
+    func saveEntries(_ entries: [HistoryEntry]) throws {}
 }

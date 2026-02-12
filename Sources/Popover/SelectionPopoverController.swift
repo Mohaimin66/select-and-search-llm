@@ -3,19 +3,29 @@ import SwiftUI
 
 @MainActor
 final class SelectionPopoverController {
+    private let historyStore: AppHistoryStore
     private var panelController: NSWindowController?
+
+    init(historyStore: AppHistoryStore) {
+        self.historyStore = historyStore
+    }
 
     func present(
         selectionResult: SelectionCaptureResult,
         mode: SelectionPopoverMode,
-        responseGenerator: SelectionResponseGenerating? = nil
+        responseGenerator: SelectionResponseGenerating? = nil,
+        providerKind: LLMProviderKind = .gemini,
+        activeAppName: String? = nil
     ) {
         dismiss()
 
         let viewModel = SelectionPopoverViewModel(
             selectionResult: selectionResult,
             mode: mode,
-            responseGenerator: responseGenerator ?? SelectionResponseGeneratorFactory.makeDefault()
+            responseGenerator: responseGenerator ?? SelectionResponseGeneratorFactory.makeDefault(),
+            historyStore: historyStore,
+            providerKind: providerKind,
+            activeAppName: activeAppName
         )
 
         let view = SelectionPopoverView(viewModel: viewModel) { [weak self] in

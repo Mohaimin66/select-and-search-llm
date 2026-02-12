@@ -2,8 +2,8 @@ import AppKit
 import SwiftUI
 
 final class HistoryWindowController: NSWindowController {
-    init() {
-        let view = HistoryView()
+    init(historyStore: AppHistoryStore) {
+        let view = HistoryView(historyStore: historyStore)
         let hostingView = NSHostingView(rootView: view)
 
         let window = NSWindow(
