@@ -38,7 +38,7 @@ Current implementation status:
    - Response display with copy/follow-up.
    - Current implementation: floating popover near cursor with selection, prompt input (ask mode), response panel, loading indicator, and provider error messaging.
 6. **History Store**
-   - Local-only storage (Core Data or SQLite).
+   - Local-only storage (JSON file; future migration to Core Data or SQLite remains possible).
    - Stores selection, prompt, response, provider, timestamps.
    - Current implementation: local JSON persistence in Application Support with in-app list/detail browsing and clear-history action.
 7. **Settings**

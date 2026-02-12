@@ -145,6 +145,28 @@ final class SelectionPopoverViewModelTests: XCTestCase {
 
         XCTAssertTrue(historyStore.entries.isEmpty)
     }
+
+    @MainActor
+    func testSuccessfulExplainPersistsHistoryEntry() async {
+        let historyStore = AppHistoryStore(persistence: InMemoryHistoryPersistenceForPopover())
+        let viewModel = SelectionPopoverViewModel(
+            selectionResult: SelectionCaptureResult(text: "sample", source: .accessibility),
+            mode: .explain,
+            responseGenerator: StubGenerator(),
+            normalizer: SelectionTextNormalizer(),
+            historyStore: historyStore,
+            providerKind: .openAI,
+            activeAppName: "Preview"
+        )
+
+        await viewModel.loadExplainResponseIfNeeded()
+
+        XCTAssertEqual(historyStore.entries.count, 1)
+        XCTAssertEqual(historyStore.entries.first?.interactionMode, .explain)
+        XCTAssertNil(historyStore.entries.first?.prompt)
+        XCTAssertEqual(historyStore.entries.first?.provider, .openAI)
+        XCTAssertEqual(historyStore.entries.first?.appName, "Preview")
+    }
 }
 
 private struct StubGenerator: SelectionResponseGenerating {

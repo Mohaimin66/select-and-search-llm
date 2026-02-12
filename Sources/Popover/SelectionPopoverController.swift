@@ -14,7 +14,7 @@ final class SelectionPopoverController {
         selectionResult: SelectionCaptureResult,
         mode: SelectionPopoverMode,
         responseGenerator: SelectionResponseGenerating? = nil,
-        providerKind: LLMProviderKind = .gemini,
+        providerKind: LLMProviderKind,
         activeAppName: String? = nil
     ) {
         dismiss()
