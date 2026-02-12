@@ -33,16 +33,19 @@
 3. OpenAI path:
    - set `SELECT_AND_SEARCH_PROVIDER=openai`
    - set `OPENAI_API_KEY=<your_key>`
-4. Local path (Ollama/LM Studio):
+4. Anthropic path:
+   - set `SELECT_AND_SEARCH_PROVIDER=anthropic`
+   - set `ANTHROPIC_API_KEY=<your_key>`
+5. Local path (Ollama/LM Studio):
    - set `SELECT_AND_SEARCH_PROVIDER=local`
    - optionally set `LOCAL_LLM_BASE_URL` and `LOCAL_LLM_MODEL`
-5. Run app, select text in Safari/Chrome/PDF reader, then trigger:
+6. Run app, select text in Safari/Chrome/PDF reader, then trigger:
    - `Explain Selection (Debug)`
    - `Ask About Selection (Debug)`
-6. Confirm popover behavior:
+7. Confirm popover behavior:
    - loading indicator appears while request is in-flight
    - response renders after completion
    - submit is disabled when prompt is empty
-7. Failure-path check:
+8. Failure-path check:
    - remove remote API key and retry
    - confirm popover shows a clear provider error message

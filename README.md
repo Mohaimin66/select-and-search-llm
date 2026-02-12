@@ -9,7 +9,7 @@ Early development. See `ARCHITECTURE.md` and `SMOKE_TESTS.md`.
 - Menu bar app with global hotkeys.
 - Selection capture via Accessibility with clipboard fallback.
 - Popover UI with Explain and Ask modes.
-- Providers: Gemini (default), OpenAI, Local (Ollama/LM Studio).
+- Providers: Gemini (default), Anthropic, OpenAI, Local (Ollama/LM Studio).
 - History and settings.
 
 ## Default Hotkeys
@@ -22,10 +22,15 @@ Early development. See `ARCHITECTURE.md` and `SMOKE_TESTS.md`.
 - LM Studio supported (non-default).
 
 ## Provider Runtime Config (Current)
-- `SELECT_AND_SEARCH_PROVIDER`: `gemini` (default), `openai`, `local`
+- `SELECT_AND_SEARCH_PROVIDER`: `gemini` (default), `anthropic`, `openai`, `local`
 - Gemini:
   - `GEMINI_API_KEY`
   - `GEMINI_MODEL` (default: `gemini-2.5-flash`)
+- Anthropic:
+  - `ANTHROPIC_API_KEY`
+  - `ANTHROPIC_MODEL` (default: `claude-3-5-haiku-latest`)
+  - `ANTHROPIC_BASE_URL` (default: `https://api.anthropic.com`)
+  - `ANTHROPIC_VERSION` (default: `2023-06-01`)
 - OpenAI:
   - `OPENAI_API_KEY`
   - `OPENAI_MODEL` (default: `gpt-4.1-mini`)

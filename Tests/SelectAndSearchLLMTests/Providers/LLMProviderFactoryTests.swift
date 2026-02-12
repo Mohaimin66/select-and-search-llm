@@ -6,6 +6,9 @@ final class LLMProviderFactoryTests: XCTestCase {
         let config = LLMProviderRuntimeConfiguration.fromEnvironment([:])
         XCTAssertEqual(config.defaultProvider, .gemini)
         XCTAssertEqual(config.geminiModel, "gemini-2.5-flash")
+        XCTAssertEqual(config.anthropicModel, "claude-3-5-haiku-latest")
+        XCTAssertEqual(config.anthropicBaseURL.absoluteString, "https://api.anthropic.com")
+        XCTAssertEqual(config.anthropicVersion, "2023-06-01")
         XCTAssertEqual(config.localModel, "llama3.2:3b")
         XCTAssertEqual(config.localBaseURL.absoluteString, "http://localhost:11434")
     }
@@ -35,6 +38,21 @@ final class LLMProviderFactoryTests: XCTestCase {
         )
 
         XCTAssertEqual(provider.kind, .openAI)
+    }
+
+    func testFactoryBuildsAnthropicProviderFromConfiguration() {
+        let config = LLMProviderRuntimeConfiguration.fromEnvironment([
+            "SELECT_AND_SEARCH_PROVIDER": "anthropic",
+            "ANTHROPIC_MODEL": "claude-3-5-haiku-latest",
+            "ANTHROPIC_API_KEY": "key"
+        ])
+
+        let provider = LLMProviderFactory.makeProvider(
+            configuration: config,
+            httpClient: StubHTTPClient()
+        )
+
+        XCTAssertEqual(provider.kind, .anthropic)
     }
 }
 

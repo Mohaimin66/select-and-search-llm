@@ -2,6 +2,7 @@ import Foundation
 
 enum LLMProviderKind: Equatable, Sendable {
     case gemini
+    case anthropic
     case openAI
     case local
 }
@@ -48,6 +49,8 @@ extension LLMProviderKind {
         switch self {
         case .gemini:
             return "Gemini"
+        case .anthropic:
+            return "Anthropic"
         case .openAI:
             return "OpenAI"
         case .local:
@@ -63,6 +66,8 @@ extension LLMProviderKind {
         switch normalized {
         case "gemini":
             return .gemini
+        case "anthropic", "claude":
+            return .anthropic
         case "openai", "open_ai":
             return .openAI
         case "local", "ollama", "lmstudio", "lm_studio":
@@ -77,6 +82,10 @@ struct LLMProviderRuntimeConfiguration: Equatable, Sendable {
     let defaultProvider: LLMProviderKind
     let geminiModel: String
     let geminiAPIKey: String?
+    let anthropicModel: String
+    let anthropicAPIKey: String?
+    let anthropicBaseURL: URL
+    let anthropicVersion: String
     let openAIModel: String
     let openAIAPIKey: String?
     let localModel: String
@@ -90,6 +99,10 @@ struct LLMProviderRuntimeConfiguration: Equatable, Sendable {
             defaultProvider: provider,
             geminiModel: normalizedValue(environment["GEMINI_MODEL"]) ?? "gemini-2.5-flash",
             geminiAPIKey: normalizedValue(environment["GEMINI_API_KEY"]),
+            anthropicModel: normalizedValue(environment["ANTHROPIC_MODEL"]) ?? "claude-3-5-haiku-latest",
+            anthropicAPIKey: normalizedValue(environment["ANTHROPIC_API_KEY"]),
+            anthropicBaseURL: anthropicBaseURL(from: environment),
+            anthropicVersion: normalizedValue(environment["ANTHROPIC_VERSION"]) ?? "2023-06-01",
             openAIModel: normalizedValue(environment["OPENAI_MODEL"]) ?? "gpt-4.1-mini",
             openAIAPIKey: normalizedValue(environment["OPENAI_API_KEY"]),
             localModel: normalizedValue(environment["LOCAL_LLM_MODEL"]) ?? "llama3.2:3b",
@@ -115,6 +128,17 @@ struct LLMProviderRuntimeConfiguration: Equatable, Sendable {
 
         return URL(string: "http://localhost:11434")!
     }
+
+    private static func anthropicBaseURL(from environment: [String: String]) -> URL {
+        if
+            let value = normalizedValue(environment["ANTHROPIC_BASE_URL"]),
+            let url = URL(string: value)
+        {
+            return url
+        }
+
+        return URL(string: "https://api.anthropic.com")!
+    }
 }
 
 enum LLMProviderFactory {
@@ -127,6 +151,14 @@ enum LLMProviderFactory {
             return GeminiProvider(
                 model: configuration.geminiModel,
                 apiKey: configuration.geminiAPIKey,
+                httpClient: httpClient
+            )
+        case .anthropic:
+            return AnthropicProvider(
+                model: configuration.anthropicModel,
+                apiKey: configuration.anthropicAPIKey,
+                baseURL: configuration.anthropicBaseURL,
+                anthropicVersion: configuration.anthropicVersion,
                 httpClient: httpClient
             )
         case .openAI:

@@ -23,10 +23,11 @@ Current implementation status:
    - Optional: include nearby context when available.
 4. **LLM Provider Layer**
    - Provider protocol with request/response normalization.
-   - Implementations: Gemini, OpenAI, Local (Ollama/LM Studio).
+   - Implementations: Gemini, Anthropic, OpenAI, Local (Ollama/LM Studio).
    - Runtime provider selection from environment:
-     - `SELECT_AND_SEARCH_PROVIDER` (`gemini` default, `openai`, `local`)
+     - `SELECT_AND_SEARCH_PROVIDER` (`gemini` default, `anthropic`, `openai`, `local`)
      - `GEMINI_API_KEY`, `GEMINI_MODEL` (`gemini-2.5-flash` default)
+     - `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` (`claude-3-5-haiku-latest` default), `ANTHROPIC_BASE_URL` (`https://api.anthropic.com` default), `ANTHROPIC_VERSION` (`2023-06-01` default)
      - `OPENAI_API_KEY`, `OPENAI_MODEL` (`gpt-4.1-mini` default)
      - `LOCAL_LLM_BASE_URL` (`http://localhost:11434` default), `LOCAL_LLM_MODEL` (`llama3.2:3b` default), `LOCAL_LLM_API_KEY` (optional)
 5. **UI Layer**
