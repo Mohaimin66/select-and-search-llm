@@ -69,11 +69,18 @@ struct LLMBackedSelectionResponseGenerator: SelectionResponseGenerating {
 
 enum SelectionResponseGeneratorFactory {
     static func makeDefault(
+        configuration: LLMProviderRuntimeConfiguration,
+        httpClient: any HTTPClient = URLSessionHTTPClient()
+    ) -> SelectionResponseGenerating {
+        let provider = LLMProviderFactory.makeProvider(configuration: configuration, httpClient: httpClient)
+        return LLMBackedSelectionResponseGenerator(provider: provider)
+    }
+
+    static func makeDefault(
         environment: [String: String] = ProcessInfo.processInfo.environment,
         httpClient: any HTTPClient = URLSessionHTTPClient()
     ) -> SelectionResponseGenerating {
         let config = LLMProviderRuntimeConfiguration.fromEnvironment(environment)
-        let provider = LLMProviderFactory.makeProvider(configuration: config, httpClient: httpClient)
-        return LLMBackedSelectionResponseGenerator(provider: provider)
+        return makeDefault(configuration: config, httpClient: httpClient)
     }
 }

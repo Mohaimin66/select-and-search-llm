@@ -49,3 +49,13 @@
 8. Failure-path check:
    - remove remote API key and retry
    - confirm popover shows a clear provider error message
+
+## Checkpoint 6: Settings + Keychain
+1. Launch app and open Settings from the menu bar.
+2. In "Default Provider", switch provider (for example, Gemini to Anthropic).
+3. Update model/base URL fields and close Settings.
+4. Re-open Settings and confirm values persisted.
+5. Enter an API key into one of the secure fields and close Settings.
+6. Re-open Settings and confirm the key is still present.
+7. Trigger `Explain Selection (Debug)` or `Ask About Selection (Debug)` and verify requests use the selected provider configuration.
+8. Clear an API key in Settings and retry request; confirm environment fallback is used when set, otherwise a clear missing-key error is shown.

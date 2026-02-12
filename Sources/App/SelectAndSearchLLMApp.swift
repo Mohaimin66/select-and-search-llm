@@ -6,7 +6,7 @@ struct SelectAndSearchLLMApp: App {
 
     var body: some Scene {
         Settings {
-            SettingsView()
+            SettingsView(settingsStore: appDelegate.settingsStore)
         }
     }
 }

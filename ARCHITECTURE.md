@@ -8,6 +8,7 @@ Current implementation status:
 - Selection capture service is implemented (Accessibility first, clipboard fallback).
 - Popover and prompt bar flows are implemented behind debug menu actions (`Explain Selection (Debug)` and `Ask About Selection (Debug)`).
 - LLM provider layer is implemented and wired into popover responses.
+- Settings store is implemented with UserDefaults persistence and Keychain-backed API keys.
 
 ## Components
 1. **App Shell**
@@ -43,6 +44,7 @@ Current implementation status:
    - Provider defaults and model selection.
    - Hotkey customization.
    - Local setup wizard and capacity checks.
+   - Current implementation: provider/model/base URL settings are persisted via `AppSettingsStore`; API keys are stored via `KeychainService`.
 
 ## Core Flows
 **Explain Selection**
@@ -61,8 +63,7 @@ Current implementation status:
 ## Permissions & Security
 - Accessibility permission required for selection capture.
 - Clipboard access used only as fallback and restored immediately.
-- API keys are currently loaded from environment variables for checkpoint validation.
-- Keychain-backed settings remain a follow-up checkpoint.
+- API keys can be loaded from Settings (Keychain) with environment fallback.
 - No telemetry; all logs local.
 
 ## Local Model Support
