@@ -21,6 +21,19 @@ Early development. See `ARCHITECTURE.md` and `SMOKE_TESTS.md`.
 - Default small model: `llama3.2:3b` (fallback: `gemma2:2b` on low memory).
 - LM Studio supported (non-default).
 
+## Provider Runtime Config (Current)
+- `SELECT_AND_SEARCH_PROVIDER`: `gemini` (default), `openai`, `local`
+- Gemini:
+  - `GEMINI_API_KEY`
+  - `GEMINI_MODEL` (default: `gemini-2.5-flash`)
+- OpenAI:
+  - `OPENAI_API_KEY`
+  - `OPENAI_MODEL` (default: `gpt-4.1-mini`)
+- Local:
+  - `LOCAL_LLM_BASE_URL` (default: `http://localhost:11434`)
+  - `LOCAL_LLM_MODEL` (default: `llama3.2:3b`)
+  - `LOCAL_LLM_API_KEY` (optional)
+
 ## Docs
 - `ARCHITECTURE.md`
 - `SMOKE_TESTS.md`

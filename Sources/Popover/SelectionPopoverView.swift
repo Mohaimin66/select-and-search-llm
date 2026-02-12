@@ -33,9 +33,13 @@ struct SelectionPopoverView: View {
                         .bold()
                     TextField("Ask a question about the selection", text: $viewModel.promptText)
                     Button("Submit Prompt") {
-                        viewModel.submitPrompt()
+                        Task {
+                            await viewModel.submitPrompt()
+                        }
                     }
-                    .disabled(viewModel.promptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(
+                        viewModel.promptText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || viewModel.isLoading
+                    )
                 }
             }
 
@@ -43,6 +47,10 @@ struct SelectionPopoverView: View {
                 Text("Response")
                     .font(.subheadline)
                     .bold()
+                if viewModel.isLoading {
+                    ProgressView("Loading...")
+                        .controlSize(.small)
+                }
                 ScrollView {
                     Text(viewModel.responseText.isEmpty ? "No response yet." : viewModel.responseText)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -58,5 +66,8 @@ struct SelectionPopoverView: View {
         }
         .padding(14)
         .frame(width: 430)
+        .task {
+            await viewModel.loadExplainResponseIfNeeded()
+        }
     }
 }

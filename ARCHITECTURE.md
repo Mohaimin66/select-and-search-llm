@@ -7,6 +7,7 @@ Current implementation status:
 - App shell is implemented.
 - Selection capture service is implemented (Accessibility first, clipboard fallback).
 - Popover and prompt bar flows are implemented behind debug menu actions (`Explain Selection (Debug)` and `Ask About Selection (Debug)`).
+- LLM provider layer is implemented and wired into popover responses.
 
 ## Components
 1. **App Shell**
@@ -23,11 +24,16 @@ Current implementation status:
 4. **LLM Provider Layer**
    - Provider protocol with request/response normalization.
    - Implementations: Gemini, OpenAI, Local (Ollama/LM Studio).
+   - Runtime provider selection from environment:
+     - `SELECT_AND_SEARCH_PROVIDER` (`gemini` default, `openai`, `local`)
+     - `GEMINI_API_KEY`, `GEMINI_MODEL` (`gemini-2.5-flash` default)
+     - `OPENAI_API_KEY`, `OPENAI_MODEL` (`gpt-4.1-mini` default)
+     - `LOCAL_LLM_BASE_URL` (`http://localhost:11434` default), `LOCAL_LLM_MODEL` (`llama3.2:3b` default), `LOCAL_LLM_API_KEY` (optional)
 5. **UI Layer**
    - Popover anchored near selection.
    - Prompt bar for editable queries.
    - Response display with copy/follow-up.
-   - Current implementation: floating debug popover near cursor with selection, prompt input (ask mode), and response panel.
+   - Current implementation: floating popover near cursor with selection, prompt input (ask mode), response panel, loading indicator, and provider error messaging.
 6. **History Store**
    - Local-only storage (Core Data or SQLite).
    - Stores selection, prompt, response, provider, timestamps.
@@ -54,7 +60,8 @@ Current implementation status:
 ## Permissions & Security
 - Accessibility permission required for selection capture.
 - Clipboard access used only as fallback and restored immediately.
-- API keys stored in Keychain.
+- API keys are currently loaded from environment variables for checkpoint validation.
+- Keychain-backed settings remain a follow-up checkpoint.
 - No telemetry; all logs local.
 
 ## Local Model Support

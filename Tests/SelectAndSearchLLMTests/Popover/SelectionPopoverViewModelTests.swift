@@ -3,7 +3,7 @@ import XCTest
 
 final class SelectionPopoverViewModelTests: XCTestCase {
     @MainActor
-    func testExplainModeLoadsInitialResponse() {
+    func testExplainModeLoadsInitialResponse() async {
         let viewModel = SelectionPopoverViewModel(
             selectionResult: SelectionCaptureResult(text: "sample", source: .accessibility),
             mode: .explain,
@@ -11,12 +11,14 @@ final class SelectionPopoverViewModelTests: XCTestCase {
             normalizer: SelectionTextNormalizer()
         )
 
+        await viewModel.loadExplainResponseIfNeeded()
+
         XCTAssertEqual(viewModel.titleText, "Explain Selection")
         XCTAssertEqual(viewModel.responseText, "explain:sample")
     }
 
     @MainActor
-    func testAskModeStartsWithoutResponseUntilPromptSubmitted() {
+    func testAskModeStartsWithoutResponseUntilPromptSubmitted() async {
         let viewModel = SelectionPopoverViewModel(
             selectionResult: SelectionCaptureResult(text: "sample", source: .clipboard),
             mode: .ask,
@@ -28,12 +30,12 @@ final class SelectionPopoverViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.responseText, "")
 
         viewModel.promptText = "  question  "
-        viewModel.submitPrompt()
+        await viewModel.submitPrompt()
         XCTAssertEqual(viewModel.responseText, "answer:question:sample")
     }
 
     @MainActor
-    func testAskModeIgnoresEmptyPrompt() {
+    func testAskModeIgnoresEmptyPrompt() async {
         let viewModel = SelectionPopoverViewModel(
             selectionResult: SelectionCaptureResult(text: "sample", source: .clipboard),
             mode: .ask,
@@ -42,18 +44,43 @@ final class SelectionPopoverViewModelTests: XCTestCase {
         )
 
         viewModel.promptText = "   "
-        viewModel.submitPrompt()
+        await viewModel.submitPrompt()
 
         XCTAssertEqual(viewModel.responseText, "")
+    }
+
+    @MainActor
+    func testViewModelSurfacesProviderErrors() async {
+        let viewModel = SelectionPopoverViewModel(
+            selectionResult: SelectionCaptureResult(text: "sample", source: .clipboard),
+            mode: .ask,
+            responseGenerator: FailingGenerator(),
+            normalizer: SelectionTextNormalizer()
+        )
+
+        viewModel.promptText = "question"
+        await viewModel.submitPrompt()
+
+        XCTAssertTrue(viewModel.responseText.contains("Error:"))
     }
 }
 
 private struct StubGenerator: SelectionResponseGenerating {
-    func explain(selectionText: String, source: SelectionSource) -> String {
+    func explain(selectionText: String, source: SelectionSource) async throws -> String {
         "explain:\(selectionText)"
     }
 
-    func answer(prompt: String, selectionText: String, source: SelectionSource) -> String {
+    func answer(prompt: String, selectionText: String, source: SelectionSource) async throws -> String {
         "answer:\(prompt):\(selectionText)"
+    }
+}
+
+private struct FailingGenerator: SelectionResponseGenerating {
+    func explain(selectionText: String, source: SelectionSource) async throws -> String {
+        throw LLMProviderError.invalidResponse
+    }
+
+    func answer(prompt: String, selectionText: String, source: SelectionSource) async throws -> String {
+        throw LLMProviderError.invalidResponse
     }
 }
