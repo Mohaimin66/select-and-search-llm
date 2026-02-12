@@ -17,6 +17,11 @@ final class SelectionPopoverViewModel: ObservableObject {
     private let responseGenerator: SelectionResponseGenerating
     private let normalizer: SelectionTextNormalizing
     private var hasLoadedExplainResponse = false
+    private var loadingCounter: Int = 0 {
+        didSet {
+            isLoading = loadingCounter > 0
+        }
+    }
 
     init(
         selectionResult: SelectionCaptureResult,
@@ -48,12 +53,15 @@ final class SelectionPopoverViewModel: ObservableObject {
             return
         }
 
-        hasLoadedExplainResponse = true
-        await loadResponse {
+        let didSucceed = await loadResponse {
             try await responseGenerator.explain(
                 selectionText: selectionResult.text,
                 source: selectionResult.source
             )
+        }
+
+        if didSucceed {
+            hasLoadedExplainResponse = true
         }
     }
 
@@ -71,14 +79,19 @@ final class SelectionPopoverViewModel: ObservableObject {
         }
     }
 
-    private func loadResponse(_ operation: @MainActor () async throws -> String) async {
-        isLoading = true
-        defer { isLoading = false }
+    @discardableResult
+    private func loadResponse(_ operation: @MainActor () async throws -> String) async -> Bool {
+        loadingCounter += 1
+        defer {
+            loadingCounter = max(loadingCounter - 1, 0)
+        }
 
         do {
             responseText = try await operation()
+            return true
         } catch {
             responseText = "Error: \(message(for: error))"
+            return false
         }
     }
 
