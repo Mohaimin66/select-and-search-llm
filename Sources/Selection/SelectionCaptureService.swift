@@ -1,6 +1,6 @@
 import Foundation
 
-enum SelectionSource: Equatable {
+enum SelectionSource: String, Codable, Equatable, Sendable {
     case accessibility
     case clipboard
 }

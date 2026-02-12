@@ -8,7 +8,8 @@ final class SelectionPopoverViewModelTests: XCTestCase {
             selectionResult: SelectionCaptureResult(text: "sample", source: .accessibility),
             mode: .explain,
             responseGenerator: StubGenerator(),
-            normalizer: SelectionTextNormalizer()
+            normalizer: SelectionTextNormalizer(),
+            providerKind: .gemini
         )
 
         await viewModel.loadExplainResponseIfNeeded()
@@ -23,7 +24,8 @@ final class SelectionPopoverViewModelTests: XCTestCase {
             selectionResult: SelectionCaptureResult(text: "sample", source: .clipboard),
             mode: .ask,
             responseGenerator: StubGenerator(),
-            normalizer: SelectionTextNormalizer()
+            normalizer: SelectionTextNormalizer(),
+            providerKind: .gemini
         )
 
         XCTAssertEqual(viewModel.titleText, "Ask About Selection")
@@ -40,7 +42,8 @@ final class SelectionPopoverViewModelTests: XCTestCase {
             selectionResult: SelectionCaptureResult(text: "sample", source: .clipboard),
             mode: .ask,
             responseGenerator: StubGenerator(),
-            normalizer: SelectionTextNormalizer()
+            normalizer: SelectionTextNormalizer(),
+            providerKind: .gemini
         )
 
         viewModel.promptText = "   "
@@ -55,7 +58,8 @@ final class SelectionPopoverViewModelTests: XCTestCase {
             selectionResult: SelectionCaptureResult(text: "sample", source: .clipboard),
             mode: .ask,
             responseGenerator: FailingGenerator(),
-            normalizer: SelectionTextNormalizer()
+            normalizer: SelectionTextNormalizer(),
+            providerKind: .gemini
         )
 
         viewModel.promptText = "question"
@@ -71,7 +75,8 @@ final class SelectionPopoverViewModelTests: XCTestCase {
             selectionResult: SelectionCaptureResult(text: "sample", source: .accessibility),
             mode: .explain,
             responseGenerator: generator,
-            normalizer: SelectionTextNormalizer()
+            normalizer: SelectionTextNormalizer(),
+            providerKind: .gemini
         )
 
         await viewModel.loadExplainResponseIfNeeded()
@@ -87,7 +92,8 @@ final class SelectionPopoverViewModelTests: XCTestCase {
             selectionResult: SelectionCaptureResult(text: "sample", source: .clipboard),
             mode: .ask,
             responseGenerator: SequencedDelayGenerator(),
-            normalizer: SelectionTextNormalizer()
+            normalizer: SelectionTextNormalizer(),
+            providerKind: .gemini
         )
 
         viewModel.promptText = "question"
@@ -103,6 +109,87 @@ final class SelectionPopoverViewModelTests: XCTestCase {
         await firstTask.value
         await secondTask.value
         XCTAssertFalse(viewModel.isLoading)
+    }
+
+    @MainActor
+    func testSuccessfulAskPersistsHistoryEntry() async {
+        let historyStore = AppHistoryStore(persistence: InMemoryHistoryPersistenceForPopover())
+        let viewModel = SelectionPopoverViewModel(
+            selectionResult: SelectionCaptureResult(text: "sample", source: .accessibility),
+            mode: .ask,
+            responseGenerator: StubGenerator(),
+            normalizer: SelectionTextNormalizer(),
+            historyStore: historyStore,
+            providerKind: .anthropic,
+            activeAppName: "Safari"
+        )
+
+        viewModel.promptText = "question"
+        await viewModel.submitPrompt()
+
+        XCTAssertEqual(historyStore.entries.count, 1)
+        XCTAssertEqual(historyStore.entries.first?.prompt, "question")
+        XCTAssertEqual(historyStore.entries.first?.provider, .anthropic)
+        XCTAssertEqual(historyStore.entries.first?.appName, "Safari")
+    }
+
+    @MainActor
+    func testFailedAskDoesNotPersistHistoryEntry() async {
+        let historyStore = AppHistoryStore(persistence: InMemoryHistoryPersistenceForPopover())
+        let viewModel = SelectionPopoverViewModel(
+            selectionResult: SelectionCaptureResult(text: "sample", source: .accessibility),
+            mode: .ask,
+            responseGenerator: FailingGenerator(),
+            normalizer: SelectionTextNormalizer(),
+            historyStore: historyStore,
+            providerKind: .gemini,
+            activeAppName: "Safari"
+        )
+
+        viewModel.promptText = "question"
+        await viewModel.submitPrompt()
+
+        XCTAssertTrue(historyStore.entries.isEmpty)
+    }
+
+    @MainActor
+    func testSuccessfulExplainPersistsHistoryEntry() async {
+        let historyStore = AppHistoryStore(persistence: InMemoryHistoryPersistenceForPopover())
+        let viewModel = SelectionPopoverViewModel(
+            selectionResult: SelectionCaptureResult(text: "sample", source: .accessibility),
+            mode: .explain,
+            responseGenerator: StubGenerator(),
+            normalizer: SelectionTextNormalizer(),
+            historyStore: historyStore,
+            providerKind: .openAI,
+            activeAppName: "Preview"
+        )
+
+        await viewModel.loadExplainResponseIfNeeded()
+
+        XCTAssertEqual(historyStore.entries.count, 1)
+        XCTAssertEqual(historyStore.entries.first?.interactionMode, .explain)
+        XCTAssertNil(historyStore.entries.first?.prompt)
+        XCTAssertEqual(historyStore.entries.first?.provider, .openAI)
+        XCTAssertEqual(historyStore.entries.first?.appName, "Preview")
+    }
+
+    @MainActor
+    func testFailedExplainDoesNotPersistHistoryEntry() async {
+        let historyStore = AppHistoryStore(persistence: InMemoryHistoryPersistenceForPopover())
+        let viewModel = SelectionPopoverViewModel(
+            selectionResult: SelectionCaptureResult(text: "sample", source: .accessibility),
+            mode: .explain,
+            responseGenerator: FailingGenerator(),
+            normalizer: SelectionTextNormalizer(),
+            historyStore: historyStore,
+            providerKind: .openAI,
+            activeAppName: "Preview"
+        )
+
+        await viewModel.loadExplainResponseIfNeeded()
+
+        XCTAssertTrue(historyStore.entries.isEmpty)
     }
 }
 
@@ -171,4 +258,9 @@ private struct SequencedDelayGenerator: SelectionResponseGenerating {
         try await Task.sleep(nanoseconds: delay)
         return "answer:\(prompt):\(selectionText)"
     }
+}
+
+private final class InMemoryHistoryPersistenceForPopover: HistoryPersisting, @unchecked Sendable {
+    func loadEntries() throws -> [HistoryEntry] { [] }
+    func saveEntries(_ entries: [HistoryEntry]) throws {}
 }
