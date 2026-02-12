@@ -3,7 +3,6 @@ import Security
 
 enum KeychainServiceError: Error {
     case unexpectedStatus(OSStatus)
-    case invalidData
 }
 
 protocol KeychainValueStoring {

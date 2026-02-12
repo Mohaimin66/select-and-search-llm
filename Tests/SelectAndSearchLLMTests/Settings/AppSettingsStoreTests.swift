@@ -44,18 +44,21 @@ final class AppSettingsStoreTests: XCTestCase {
         let store = AppSettingsStore(userDefaults: userDefaults, keychain: InMemoryKeychain())
 
         store.geminiAPIKey = ""
+        store.anthropicAPIKey = ""
         store.openAIAPIKey = ""
         store.localAPIKey = ""
 
         let config = store.runtimeConfiguration(
             environment: [
                 "GEMINI_API_KEY": "env-gemini",
+                "ANTHROPIC_API_KEY": "env-anthropic",
                 "OPENAI_API_KEY": "env-openai",
                 "LOCAL_LLM_API_KEY": "env-local"
             ]
         )
 
         XCTAssertEqual(config.geminiAPIKey, "env-gemini")
+        XCTAssertEqual(config.anthropicAPIKey, "env-anthropic")
         XCTAssertEqual(config.openAIAPIKey, "env-openai")
         XCTAssertEqual(config.localAPIKey, "env-local")
     }
