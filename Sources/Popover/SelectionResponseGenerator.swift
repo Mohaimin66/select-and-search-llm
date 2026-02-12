@@ -6,17 +6,13 @@ protocol SelectionResponseGenerating: Sendable {
 }
 
 struct DebugSelectionResponseGenerator: SelectionResponseGenerating {
-    private func sourceLabel(for source: SelectionSource) -> String {
-        source == .accessibility ? "Accessibility" : "Clipboard fallback"
-    }
-
     func explain(selectionText: String, source: SelectionSource) async throws -> String {
-        let sourceLabel = sourceLabel(for: source)
+        let sourceLabel = source.displayLabel
         return "Debug explain response (\(sourceLabel)):\n\n\(selectionText)"
     }
 
     func answer(prompt: String, selectionText: String, source: SelectionSource) async throws -> String {
-        let sourceLabel = sourceLabel(for: source)
+        let sourceLabel = source.displayLabel
         return "Debug answer (\(sourceLabel)) for prompt: \"\(prompt)\"\n\nSelection:\n\(selectionText)"
     }
 }
@@ -32,7 +28,7 @@ struct LLMBackedSelectionResponseGenerator: SelectionResponseGenerating {
         let systemPrompt = "You explain selected text in plain language. Stay concise and accurate."
         let userPrompt = """
         Explain this selected text.
-        Source: \(sourceLabel(for: source))
+        Source: \(source.displayLabel)
 
         Selected text:
         \(selectionText)
@@ -51,7 +47,7 @@ struct LLMBackedSelectionResponseGenerator: SelectionResponseGenerating {
     func answer(prompt: String, selectionText: String, source: SelectionSource) async throws -> String {
         let systemPrompt = "Answer questions about selected text. Use only the provided text and be explicit when uncertain."
         let userPrompt = """
-        Selected text source: \(sourceLabel(for: source))
+        Selected text source: \(source.displayLabel)
 
         Selected text:
         \(selectionText)
@@ -68,10 +64,6 @@ struct LLMBackedSelectionResponseGenerator: SelectionResponseGenerating {
                 temperature: 0.3
             )
         )
-    }
-
-    private func sourceLabel(for source: SelectionSource) -> String {
-        source == .accessibility ? "Accessibility" : "Clipboard fallback"
     }
 }
 

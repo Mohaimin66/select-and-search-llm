@@ -74,14 +74,15 @@ struct OpenAICompatibleProvider: LLMProvider {
     }
 
     private func chatCompletionsURL() -> URL {
-        let normalizedPath = baseURL.path.lowercased()
+        let normalizedBaseURL = baseURL.normalizedForPathSuffixChecks()
+        let normalizedPath = normalizedBaseURL.path.lowercased()
         if normalizedPath.hasSuffix("/v1/chat/completions") {
-            return baseURL
+            return normalizedBaseURL
         }
         if normalizedPath.hasSuffix("/v1") {
-            return baseURL.appendingPathComponent("chat/completions")
+            return normalizedBaseURL.appendingPathComponent("chat/completions")
         }
-        return baseURL.appendingPathComponent("v1/chat/completions")
+        return normalizedBaseURL.appendingPathComponent("v1/chat/completions")
     }
 
     private func validate(response: URLResponse, data: Data) throws {
@@ -144,4 +145,23 @@ private struct OpenAIErrorEnvelope: Decodable {
 
 private struct OpenAIErrorPayload: Decodable {
     let message: String?
+}
+
+private extension URL {
+    func normalizedForPathSuffixChecks() -> URL {
+        guard var components = URLComponents(url: self, resolvingAgainstBaseURL: false) else {
+            return self
+        }
+
+        var trimmedPath = components.path
+        while trimmedPath.count > 1 && trimmedPath.hasSuffix("/") {
+            trimmedPath.removeLast()
+        }
+        if trimmedPath == "/" {
+            trimmedPath = ""
+        }
+
+        components.path = trimmedPath
+        return components.url ?? self
+    }
 }

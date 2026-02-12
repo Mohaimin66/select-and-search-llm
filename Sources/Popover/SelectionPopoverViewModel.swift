@@ -40,12 +40,7 @@ final class SelectionPopoverViewModel: ObservableObject {
     }
 
     var sourceText: String {
-        switch selectionResult.source {
-        case .accessibility:
-            return "Source: Accessibility"
-        case .clipboard:
-            return "Source: Clipboard fallback"
-        }
+        "Source: \(selectionResult.source.displayLabel)"
     }
 
     func loadExplainResponseIfNeeded() async {

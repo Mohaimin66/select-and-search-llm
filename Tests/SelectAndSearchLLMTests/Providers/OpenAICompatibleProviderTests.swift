@@ -111,6 +111,84 @@ final class OpenAICompatibleProviderTests: XCTestCase {
             XCTFail("Unexpected error: \(error)")
         }
     }
+
+    func testGenerateTextUsesCorrectEndpointWhenBaseURLEndsWithV1Slash() async throws {
+        let client = OpenAIRecordingHTTPClient(
+            data: """
+            {
+              "choices": [
+                {
+                  "message": {
+                    "content": "OK"
+                  }
+                }
+              ]
+            }
+            """.data(using: .utf8)!,
+            statusCode: 200
+        )
+        let provider = OpenAICompatibleProvider(
+            kind: .openAI,
+            model: "gpt-4.1-mini",
+            baseURL: URL(string: "https://api.openai.com/v1/")!,
+            apiKey: "openai-key",
+            requiresAPIKey: true,
+            missingKeyEnvVar: "OPENAI_API_KEY",
+            httpClient: client
+        )
+
+        _ = try await provider.generateText(
+            input: LLMProviderInput(
+                systemPrompt: nil,
+                userPrompt: "user",
+                maxOutputTokens: nil,
+                temperature: nil
+            )
+        )
+
+        let capturedRequest = await client.lastRequest()
+        let request = try XCTUnwrap(capturedRequest)
+        XCTAssertEqual(request.url?.absoluteString, "https://api.openai.com/v1/chat/completions")
+    }
+
+    func testGenerateTextUsesCorrectEndpointWhenBaseURLEndsWithCompletionsSlash() async throws {
+        let client = OpenAIRecordingHTTPClient(
+            data: """
+            {
+              "choices": [
+                {
+                  "message": {
+                    "content": "OK"
+                  }
+                }
+              ]
+            }
+            """.data(using: .utf8)!,
+            statusCode: 200
+        )
+        let provider = OpenAICompatibleProvider(
+            kind: .openAI,
+            model: "gpt-4.1-mini",
+            baseURL: URL(string: "https://api.openai.com/v1/chat/completions/")!,
+            apiKey: "openai-key",
+            requiresAPIKey: true,
+            missingKeyEnvVar: "OPENAI_API_KEY",
+            httpClient: client
+        )
+
+        _ = try await provider.generateText(
+            input: LLMProviderInput(
+                systemPrompt: nil,
+                userPrompt: "user",
+                maxOutputTokens: nil,
+                temperature: nil
+            )
+        )
+
+        let capturedRequest = await client.lastRequest()
+        let request = try XCTUnwrap(capturedRequest)
+        XCTAssertEqual(request.url?.absoluteString, "https://api.openai.com/v1/chat/completions")
+    }
 }
 
 private actor OpenAIRecordingHTTPClient: HTTPClient {
