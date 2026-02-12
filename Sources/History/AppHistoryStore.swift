@@ -7,15 +7,21 @@ final class AppHistoryStore: ObservableObject {
     @Published private(set) var lastPersistenceErrorMessage: String?
 
     private let persistence: any HistoryPersisting
+    private let persistenceQueue: DispatchQueue
     private let maxEntries: Int
     private let now: () -> Date
 
     init(
         persistence: any HistoryPersisting = FileHistoryPersistence(),
+        persistenceQueue: DispatchQueue = DispatchQueue(
+            label: "com.mohaimin66.selectandsearch.history.persistence",
+            qos: .utility
+        ),
         maxEntries: Int = 500,
         now: @escaping () -> Date = Date.init
     ) {
         self.persistence = persistence
+        self.persistenceQueue = persistenceQueue
         self.maxEntries = maxEntries
         self.now = now
         loadEntries()
@@ -38,12 +44,12 @@ final class AppHistoryStore: ObservableObject {
         if entries.count > maxEntries {
             entries = Array(entries.prefix(maxEntries))
         }
-        persistEntries()
+        persistEntries(entries)
     }
 
     func clearAll() {
         entries.removeAll()
-        persistEntries()
+        persistEntries(entries)
     }
 
     func entry(id: UUID?) -> HistoryEntry? {
@@ -52,22 +58,37 @@ final class AppHistoryStore: ObservableObject {
     }
 
     private func loadEntries() {
-        do {
-            let loaded = try persistence.loadEntries()
-            entries = loaded.sorted { $0.createdAt > $1.createdAt }
-            lastPersistenceErrorMessage = nil
-        } catch {
-            entries = []
-            lastPersistenceErrorMessage = "Failed to load history. \(error.localizedDescription)"
+        let persistence = self.persistence
+        persistenceQueue.async { [weak self] in
+            do {
+                let loaded = try persistence.loadEntries()
+                let sorted = loaded.sorted { $0.createdAt > $1.createdAt }
+                Task { @MainActor [weak self] in
+                    self?.entries = sorted
+                    self?.lastPersistenceErrorMessage = nil
+                }
+            } catch {
+                Task { @MainActor [weak self] in
+                    self?.entries = []
+                    self?.lastPersistenceErrorMessage = "Failed to load history. \(error.localizedDescription)"
+                }
+            }
         }
     }
 
-    private func persistEntries() {
-        do {
-            try persistence.saveEntries(entries)
-            lastPersistenceErrorMessage = nil
-        } catch {
-            lastPersistenceErrorMessage = "Failed to save history. \(error.localizedDescription)"
+    private func persistEntries(_ snapshot: [HistoryEntry]) {
+        let persistence = self.persistence
+        persistenceQueue.async { [weak self] in
+            do {
+                try persistence.saveEntries(snapshot)
+                Task { @MainActor [weak self] in
+                    self?.lastPersistenceErrorMessage = nil
+                }
+            } catch {
+                Task { @MainActor [weak self] in
+                    self?.lastPersistenceErrorMessage = "Failed to save history. \(error.localizedDescription)"
+                }
+            }
         }
     }
 }

@@ -8,7 +8,8 @@ final class SelectionPopoverViewModelTests: XCTestCase {
             selectionResult: SelectionCaptureResult(text: "sample", source: .accessibility),
             mode: .explain,
             responseGenerator: StubGenerator(),
-            normalizer: SelectionTextNormalizer()
+            normalizer: SelectionTextNormalizer(),
+            providerKind: .gemini
         )
 
         await viewModel.loadExplainResponseIfNeeded()
@@ -23,7 +24,8 @@ final class SelectionPopoverViewModelTests: XCTestCase {
             selectionResult: SelectionCaptureResult(text: "sample", source: .clipboard),
             mode: .ask,
             responseGenerator: StubGenerator(),
-            normalizer: SelectionTextNormalizer()
+            normalizer: SelectionTextNormalizer(),
+            providerKind: .gemini
         )
 
         XCTAssertEqual(viewModel.titleText, "Ask About Selection")
@@ -40,7 +42,8 @@ final class SelectionPopoverViewModelTests: XCTestCase {
             selectionResult: SelectionCaptureResult(text: "sample", source: .clipboard),
             mode: .ask,
             responseGenerator: StubGenerator(),
-            normalizer: SelectionTextNormalizer()
+            normalizer: SelectionTextNormalizer(),
+            providerKind: .gemini
         )
 
         viewModel.promptText = "   "
@@ -55,7 +58,8 @@ final class SelectionPopoverViewModelTests: XCTestCase {
             selectionResult: SelectionCaptureResult(text: "sample", source: .clipboard),
             mode: .ask,
             responseGenerator: FailingGenerator(),
-            normalizer: SelectionTextNormalizer()
+            normalizer: SelectionTextNormalizer(),
+            providerKind: .gemini
         )
 
         viewModel.promptText = "question"
@@ -71,7 +75,8 @@ final class SelectionPopoverViewModelTests: XCTestCase {
             selectionResult: SelectionCaptureResult(text: "sample", source: .accessibility),
             mode: .explain,
             responseGenerator: generator,
-            normalizer: SelectionTextNormalizer()
+            normalizer: SelectionTextNormalizer(),
+            providerKind: .gemini
         )
 
         await viewModel.loadExplainResponseIfNeeded()
@@ -87,7 +92,8 @@ final class SelectionPopoverViewModelTests: XCTestCase {
             selectionResult: SelectionCaptureResult(text: "sample", source: .clipboard),
             mode: .ask,
             responseGenerator: SequencedDelayGenerator(),
-            normalizer: SelectionTextNormalizer()
+            normalizer: SelectionTextNormalizer(),
+            providerKind: .gemini
         )
 
         viewModel.promptText = "question"
@@ -236,7 +242,7 @@ private struct SequencedDelayGenerator: SelectionResponseGenerating {
     }
 }
 
-private final class InMemoryHistoryPersistenceForPopover: HistoryPersisting {
+private final class InMemoryHistoryPersistenceForPopover: HistoryPersisting, @unchecked Sendable {
     func loadEntries() throws -> [HistoryEntry] { [] }
     func saveEntries(_ entries: [HistoryEntry]) throws {}
 }

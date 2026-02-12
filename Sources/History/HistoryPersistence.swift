@@ -1,11 +1,11 @@
 import Foundation
 
-protocol HistoryPersisting {
+protocol HistoryPersisting: Sendable {
     func loadEntries() throws -> [HistoryEntry]
     func saveEntries(_ entries: [HistoryEntry]) throws
 }
 
-struct FileHistoryPersistence: HistoryPersisting {
+struct FileHistoryPersistence: HistoryPersisting, @unchecked Sendable {
     private let fileURL: URL
     private let fileManager: FileManager
 

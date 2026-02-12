@@ -32,7 +32,7 @@ final class SelectionPopoverViewModel: ObservableObject {
         responseGenerator: SelectionResponseGenerating = SelectionResponseGeneratorFactory.makeDefault(),
         normalizer: SelectionTextNormalizing = SelectionTextNormalizer(),
         historyStore: AppHistoryStore? = nil,
-        providerKind: LLMProviderKind = .gemini,
+        providerKind: LLMProviderKind,
         activeAppName: String? = nil
     ) {
         self.selectionResult = selectionResult

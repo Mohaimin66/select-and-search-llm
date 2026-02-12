@@ -31,8 +31,6 @@ struct HistoryView: View {
             .frame(minWidth: 280)
             .padding(14)
 
-            Divider()
-
             VStack(alignment: .leading, spacing: 10) {
                 if let entry = historyStore.entry(id: selectedEntryID) {
                     Text(entry.interactionMode.displayName)
