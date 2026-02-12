@@ -59,3 +59,17 @@
 6. Re-open Settings and confirm the key is still present.
 7. Trigger `Explain Selection (Debug)` or `Ask About Selection (Debug)` and verify requests use the selected provider configuration.
 8. Clear an API key in Settings and retry request; confirm environment fallback is used when set, otherwise a clear missing-key error is shown.
+
+## Checkpoint 7: History Store
+1. Launch app and trigger `Explain Selection (Debug)` on any selected text.
+2. Trigger `Ask About Selection (Debug)`, submit a prompt, and wait for response.
+3. Open History from the menu bar.
+4. Confirm at least two entries appear in the left list.
+5. Select each entry and verify detail panel shows:
+   - timestamp
+   - app/source metadata
+   - selection text
+   - response text
+   - prompt (for Ask entries)
+6. Click `Clear History` and verify list becomes empty.
+7. Relaunch the app and confirm cleared state is preserved.

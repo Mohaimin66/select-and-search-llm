@@ -16,6 +16,9 @@ final class SelectionPopoverViewModel: ObservableObject {
 
     private let responseGenerator: SelectionResponseGenerating
     private let normalizer: SelectionTextNormalizing
+    private let historyStore: AppHistoryStore?
+    private let providerKind: LLMProviderKind
+    private let activeAppName: String?
     private var hasLoadedExplainResponse = false
     private var loadingCounter: Int = 0 {
         didSet {
@@ -27,12 +30,18 @@ final class SelectionPopoverViewModel: ObservableObject {
         selectionResult: SelectionCaptureResult,
         mode: SelectionPopoverMode,
         responseGenerator: SelectionResponseGenerating = SelectionResponseGeneratorFactory.makeDefault(),
-        normalizer: SelectionTextNormalizing = SelectionTextNormalizer()
+        normalizer: SelectionTextNormalizing = SelectionTextNormalizer(),
+        historyStore: AppHistoryStore? = nil,
+        providerKind: LLMProviderKind = .gemini,
+        activeAppName: String? = nil
     ) {
         self.selectionResult = selectionResult
         self.mode = mode
         self.responseGenerator = responseGenerator
         self.normalizer = normalizer
+        self.historyStore = historyStore
+        self.providerKind = providerKind
+        self.activeAppName = activeAppName
     }
 
     var titleText: String {
@@ -53,15 +62,20 @@ final class SelectionPopoverViewModel: ObservableObject {
             return
         }
 
-        let didSucceed = await loadResponse {
+        let responseText = await loadResponse {
             try await responseGenerator.explain(
                 selectionText: selectionResult.text,
                 source: selectionResult.source
             )
         }
 
-        if didSucceed {
+        if let responseText {
             hasLoadedExplainResponse = true
+            recordHistory(
+                interactionMode: .explain,
+                prompt: nil,
+                responseText: responseText
+            )
         }
     }
 
@@ -70,28 +84,36 @@ final class SelectionPopoverViewModel: ObservableObject {
             return
         }
 
-        await loadResponse {
+        guard let responseText = await loadResponse({
             try await responseGenerator.answer(
                 prompt: prompt,
                 selectionText: selectionResult.text,
                 source: selectionResult.source
             )
+        }) else {
+            return
         }
+
+        recordHistory(
+            interactionMode: .ask,
+            prompt: prompt,
+            responseText: responseText
+        )
     }
 
-    @discardableResult
-    private func loadResponse(_ operation: @MainActor () async throws -> String) async -> Bool {
+    private func loadResponse(_ operation: @MainActor () async throws -> String) async -> String? {
         loadingCounter += 1
         defer {
             loadingCounter = max(loadingCounter - 1, 0)
         }
 
         do {
-            responseText = try await operation()
-            return true
+            let responseText = try await operation()
+            self.responseText = responseText
+            return responseText
         } catch {
             responseText = "Error: \(message(for: error))"
-            return false
+            return nil
         }
     }
 
@@ -101,5 +123,23 @@ final class SelectionPopoverViewModel: ObservableObject {
         }
 
         return String(describing: error)
+    }
+
+    private func recordHistory(
+        interactionMode: HistoryInteractionMode,
+        prompt: String?,
+        responseText: String
+    ) {
+        historyStore?.record(
+            HistoryRecordInput(
+                interactionMode: interactionMode,
+                source: selectionResult.source,
+                appName: activeAppName,
+                provider: providerKind,
+                selectionText: selectionResult.text,
+                prompt: prompt,
+                responseText: responseText
+            )
+        )
     }
 }

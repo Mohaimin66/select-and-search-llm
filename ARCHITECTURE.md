@@ -9,6 +9,7 @@ Current implementation status:
 - Popover and prompt bar flows are implemented behind debug menu actions (`Explain Selection (Debug)` and `Ask About Selection (Debug)`).
 - LLM provider layer is implemented and wired into popover responses.
 - Settings store is implemented with UserDefaults persistence and Keychain-backed API keys.
+- History store is implemented with local JSON persistence and list/detail UI.
 
 ## Components
 1. **App Shell**
@@ -37,8 +38,9 @@ Current implementation status:
    - Response display with copy/follow-up.
    - Current implementation: floating popover near cursor with selection, prompt input (ask mode), response panel, loading indicator, and provider error messaging.
 6. **History Store**
-   - Local-only storage (Core Data or SQLite).
+   - Local-only storage (JSON file; future migration to Core Data or SQLite remains possible).
    - Stores selection, prompt, response, provider, timestamps.
+   - Current implementation: local JSON persistence in Application Support with in-app list/detail browsing and clear-history action.
 7. **Settings**
    - API keys in Keychain.
    - Provider defaults and model selection.
