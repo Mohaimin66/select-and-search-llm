@@ -72,6 +72,7 @@ final class AppSettingsStoreTests: XCTestCase {
             let store = AppSettingsStore(userDefaults: userDefaults, keychain: keychain)
             store.preferences.selectedProvider = .openAI
             store.preferences.openAIModel = "gpt-custom"
+            store.preferences.explainShortcut = KeyboardShortcut(key: .r, modifiers: [.control, .option])
             store.openAIAPIKey = "persisted-openai"
         }
 
@@ -80,7 +81,31 @@ final class AppSettingsStoreTests: XCTestCase {
 
         XCTAssertEqual(reloadedStore.preferences.selectedProvider, .openAI)
         XCTAssertEqual(reloadedStore.preferences.openAIModel, "gpt-custom")
+        XCTAssertEqual(reloadedStore.preferences.explainShortcut, KeyboardShortcut(key: .r, modifiers: [.control, .option]))
         XCTAssertEqual(config.openAIAPIKey, "persisted-openai")
+    }
+
+    @MainActor
+    func testLegacyPreferencesWithoutHotkeysUseDefaults() throws {
+        let userDefaults = makeUserDefaults()
+        let legacyPreferences: [String: Any] = [
+            "selectedProvider": "gemini",
+            "geminiModel": "legacy-gemini",
+            "anthropicModel": "legacy-anthropic",
+            "anthropicBaseURL": "https://api.anthropic.com",
+            "anthropicVersion": "2023-06-01",
+            "openAIModel": "legacy-openai",
+            "localModel": "legacy-local",
+            "localBaseURL": "http://localhost:11434"
+        ]
+        let data = try JSONSerialization.data(withJSONObject: legacyPreferences)
+        userDefaults.set(data, forKey: "settings.preferences")
+
+        let store = AppSettingsStore(userDefaults: userDefaults, keychain: InMemoryKeychain())
+
+        XCTAssertEqual(store.preferences.geminiModel, "legacy-gemini")
+        XCTAssertEqual(store.preferences.explainShortcut, .defaultExplain)
+        XCTAssertEqual(store.preferences.askShortcut, .defaultAsk)
     }
 
     private func makeUserDefaults() -> UserDefaults {

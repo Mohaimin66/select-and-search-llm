@@ -10,6 +10,7 @@ Current implementation status:
 - LLM provider layer is implemented and wired into popover responses.
 - Settings store is implemented with UserDefaults persistence and Keychain-backed API keys.
 - History store is implemented with local JSON persistence and list/detail UI.
+- Global hotkey registration is implemented with user-configurable shortcuts from Settings.
 
 ## Components
 1. **App Shell**
@@ -46,7 +47,7 @@ Current implementation status:
    - Provider defaults and model selection.
    - Hotkey customization.
    - Local setup wizard and capacity checks.
-   - Current implementation: provider/model/base URL settings are persisted via `AppSettingsStore`; API keys are stored via `KeychainService`.
+   - Current implementation: provider/model/base URL settings plus shortcut preferences are persisted via `AppSettingsStore`; API keys are stored via `KeychainService`.
 
 ## Core Flows
 **Explain Selection**

@@ -6,6 +6,7 @@ System-wide text selection explainer for macOS. Select text anywhere (Safari, Ch
 Early development. See `ARCHITECTURE.md` and `SMOKE_TESTS.md`.
 - Settings now persist provider defaults/models/base URLs in UserDefaults and API keys in Keychain.
 - History now persists locally and is viewable in a list/detail History window.
+- Global hotkeys are implemented and configurable from Settings.
 
 ## MVP Goals
 - Menu bar app with global hotkeys.

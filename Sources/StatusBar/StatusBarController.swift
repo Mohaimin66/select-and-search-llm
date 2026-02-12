@@ -1,4 +1,5 @@
 import AppKit
+import Combine
 
 @MainActor
 final class StatusBarController: NSObject {
@@ -8,6 +9,9 @@ final class StatusBarController: NSObject {
     private let selectionCaptureService: SelectionCaptureService
     private let selectionPopoverController: SelectionPopoverController
     private let settingsStore: AppSettingsStore
+    private var hotkeyService: GlobalHotkeyService?
+    private var cancellables = Set<AnyCancellable>()
+    private var lastRegisteredShortcuts: (explain: KeyboardShortcut, ask: KeyboardShortcut)?
 
     init(settingsStore: AppSettingsStore, historyStore: AppHistoryStore) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
@@ -18,6 +22,7 @@ final class StatusBarController: NSObject {
         self.settingsStore = settingsStore
         super.init()
         configureStatusItem()
+        configureGlobalHotkeys()
     }
 
     private func configureStatusItem() {
@@ -128,5 +133,45 @@ final class StatusBarController: NSObject {
 
     private func activeAppName() -> String? {
         NSWorkspace.shared.frontmostApplication?.localizedName
+    }
+
+    private func configureGlobalHotkeys() {
+        hotkeyService = GlobalHotkeyService(
+            onExplain: { [weak self] in
+                Task { @MainActor in
+                    self?.explainSelection()
+                }
+            },
+            onAsk: { [weak self] in
+                Task { @MainActor in
+                    self?.askSelection()
+                }
+            }
+        )
+
+        updateRegisteredHotkeys(
+            explain: settingsStore.preferences.explainShortcut,
+            ask: settingsStore.preferences.askShortcut
+        )
+
+        settingsStore.$preferences
+            .sink { [weak self] preferences in
+                self?.updateRegisteredHotkeys(
+                    explain: preferences.explainShortcut,
+                    ask: preferences.askShortcut
+                )
+            }
+            .store(in: &cancellables)
+    }
+
+    private func updateRegisteredHotkeys(
+        explain: KeyboardShortcut,
+        ask: KeyboardShortcut
+    ) {
+        guard lastRegisteredShortcuts?.explain != explain || lastRegisteredShortcuts?.ask != ask else {
+            return
+        }
+        hotkeyService?.updateShortcuts(explain: explain, ask: ask)
+        lastRegisteredShortcuts = (explain: explain, ask: ask)
     }
 }

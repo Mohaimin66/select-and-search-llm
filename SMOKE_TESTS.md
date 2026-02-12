@@ -73,3 +73,13 @@
    - prompt (for Ask entries)
 6. Click `Clear History` and verify list becomes empty.
 7. Relaunch the app and confirm cleared state is preserved.
+
+## Checkpoint 8: Global Hotkeys
+1. Launch app and grant Accessibility permission if prompted.
+2. Select text in another app and press `Control + Option + E`.
+3. Confirm Explain popover opens and response loads.
+4. Select text and press `Control + Option + P`.
+5. Confirm Ask popover opens with prompt field.
+6. Open Settings and change Explain shortcut key (for example, `E` to `R`).
+7. Verify old Explain shortcut no longer triggers and new shortcut does.
+8. Set Explain and Ask to different shortcuts and verify both trigger the correct actions.
