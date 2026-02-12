@@ -65,9 +65,10 @@ struct HistoryView: View {
             .disabled(historyStore.entries.isEmpty)
         }
         .onAppear {
-            if selectedEntryID == nil {
-                selectedEntryID = historyStore.entries.first?.id
-            }
+            syncSelectionWithEntries()
+        }
+        .onChange(of: historyStore.entries) { _ in
+            syncSelectionWithEntries()
         }
     }
 
@@ -75,6 +76,17 @@ struct HistoryView: View {
         let timestamp = entry.createdAt.formatted(date: .abbreviated, time: .shortened)
         let appName = entry.appName ?? "Unknown App"
         return "\(timestamp) • \(appName) • \(entry.source.displayLabel)"
+    }
+
+    private func syncSelectionWithEntries() {
+        guard let selectedEntryID else {
+            self.selectedEntryID = historyStore.entries.first?.id
+            return
+        }
+        guard historyStore.entries.contains(where: { $0.id == selectedEntryID }) else {
+            self.selectedEntryID = historyStore.entries.first?.id
+            return
+        }
     }
 
     @ViewBuilder

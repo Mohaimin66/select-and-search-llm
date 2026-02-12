@@ -10,6 +10,7 @@ final class AppHistoryStore: ObservableObject {
     private let persistenceQueue: DispatchQueue
     private let maxEntries: Int
     private let now: () -> Date
+    private var mutationVersion: UInt64 = 0
 
     init(
         persistence: any HistoryPersisting = FileHistoryPersistence(),
@@ -44,11 +45,13 @@ final class AppHistoryStore: ObservableObject {
         if entries.count > maxEntries {
             entries = Array(entries.prefix(maxEntries))
         }
+        mutationVersion &+= 1
         persistEntries(entries)
     }
 
     func clearAll() {
         entries.removeAll()
+        mutationVersion &+= 1
         persistEntries(entries)
     }
 
@@ -59,18 +62,27 @@ final class AppHistoryStore: ObservableObject {
 
     private func loadEntries() {
         let persistence = self.persistence
+        let expectedVersion = mutationVersion
         persistenceQueue.async { [weak self] in
             do {
                 let loaded = try persistence.loadEntries()
                 let sorted = loaded.sorted { $0.createdAt > $1.createdAt }
                 Task { @MainActor [weak self] in
-                    self?.entries = sorted
-                    self?.lastPersistenceErrorMessage = nil
+                    guard let self else { return }
+                    guard self.mutationVersion == expectedVersion else {
+                        return
+                    }
+                    self.entries = sorted
+                    self.lastPersistenceErrorMessage = nil
                 }
             } catch {
                 Task { @MainActor [weak self] in
-                    self?.entries = []
-                    self?.lastPersistenceErrorMessage = "Failed to load history. \(error.localizedDescription)"
+                    guard let self else { return }
+                    guard self.mutationVersion == expectedVersion else {
+                        return
+                    }
+                    self.entries = []
+                    self.lastPersistenceErrorMessage = "Failed to load history. \(error.localizedDescription)"
                 }
             }
         }

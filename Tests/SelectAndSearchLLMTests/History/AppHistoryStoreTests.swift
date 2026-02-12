@@ -81,6 +81,30 @@ final class AppHistoryStoreTests: XCTestCase {
         await waitUntil { persistence.savedEntriesSnapshot.count == 2 }
     }
 
+    @MainActor
+    func testAsyncLoadDoesNotOverwriteLocalMutations() async {
+        let persistence = BlockingLoadHistoryPersistence(
+            loadedEntries: [makeEntry(createdAt: Date(timeIntervalSince1970: 1_700_000_000), prompt: "disk")]
+        )
+        let queue = DispatchQueue(label: "AppHistoryStoreTests.persistence.blocked")
+        let fixedDate = Date(timeIntervalSince1970: 1_800_000_000)
+        let store = AppHistoryStore(
+            persistence: persistence,
+            persistenceQueue: queue,
+            now: { fixedDate }
+        )
+
+        await waitUntil { persistence.loadStartedSnapshot }
+        store.record(makeInput(prompt: "local"))
+        persistence.unblockLoad()
+
+        await waitUntil { persistence.loadCompletedSnapshot }
+
+        XCTAssertEqual(store.entries.count, 1)
+        XCTAssertEqual(store.entries.first?.prompt, "local")
+        XCTAssertEqual(store.entries.first?.createdAt, fixedDate)
+    }
+
     private func makeInput(prompt: String) -> HistoryRecordInput {
         HistoryRecordInput(
             interactionMode: .ask,
@@ -155,6 +179,50 @@ private final class InMemoryHistoryPersistence: HistoryPersisting, @unchecked Se
     var saveCallCountSnapshot: Int {
         lock.withLock {
             saveCallCount
+        }
+    }
+}
+
+private final class BlockingLoadHistoryPersistence: HistoryPersisting, @unchecked Sendable {
+    private let lock = NSLock()
+    private let loadSemaphore = DispatchSemaphore(value: 0)
+    private var loadedEntries: [HistoryEntry]
+    private var loadStarted = false
+    private var loadCompleted = false
+
+    init(loadedEntries: [HistoryEntry]) {
+        self.loadedEntries = loadedEntries
+    }
+
+    func loadEntries() throws -> [HistoryEntry] {
+        lock.withLock {
+            loadStarted = true
+        }
+        _ = loadSemaphore.wait(timeout: .now() + 1)
+        let result = lock.withLock {
+            loadedEntries
+        }
+        lock.withLock {
+            loadCompleted = true
+        }
+        return result
+    }
+
+    func saveEntries(_ entries: [HistoryEntry]) throws {}
+
+    func unblockLoad() {
+        loadSemaphore.signal()
+    }
+
+    var loadStartedSnapshot: Bool {
+        lock.withLock {
+            loadStarted
+        }
+    }
+
+    var loadCompletedSnapshot: Bool {
+        lock.withLock {
+            loadCompleted
         }
     }
 }
