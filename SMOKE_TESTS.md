@@ -24,3 +24,28 @@
 7. Confirm the popover includes a prompt field and "Submit Prompt" action.
 8. Enter a prompt and submit, then confirm response text updates.
 9. In an app where Accessibility selection is unavailable, repeat and confirm clipboard fallback or "No Selection Captured" alert.
+
+## Checkpoint 5: Provider Layer
+1. Set provider environment variables before launch.
+2. Gemini path:
+   - set `SELECT_AND_SEARCH_PROVIDER=gemini`
+   - set `GEMINI_API_KEY=<your_key>`
+3. OpenAI path:
+   - set `SELECT_AND_SEARCH_PROVIDER=openai`
+   - set `OPENAI_API_KEY=<your_key>`
+4. Anthropic path:
+   - set `SELECT_AND_SEARCH_PROVIDER=anthropic`
+   - set `ANTHROPIC_API_KEY=<your_key>`
+5. Local path (Ollama/LM Studio):
+   - set `SELECT_AND_SEARCH_PROVIDER=local`
+   - optionally set `LOCAL_LLM_BASE_URL` and `LOCAL_LLM_MODEL`
+6. Run app, select text in Safari/Chrome/PDF reader, then trigger:
+   - `Explain Selection (Debug)`
+   - `Ask About Selection (Debug)`
+7. Confirm popover behavior:
+   - loading indicator appears while request is in-flight
+   - response renders after completion
+   - submit is disabled when prompt is empty
+8. Failure-path check:
+   - remove remote API key and retry
+   - confirm popover shows a clear provider error message

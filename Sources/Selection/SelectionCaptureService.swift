@@ -5,6 +5,17 @@ enum SelectionSource: Equatable {
     case clipboard
 }
 
+extension SelectionSource {
+    var displayLabel: String {
+        switch self {
+        case .accessibility:
+            return "Accessibility"
+        case .clipboard:
+            return "Clipboard fallback"
+        }
+    }
+}
+
 struct SelectionCaptureResult: Equatable {
     let text: String
     let source: SelectionSource

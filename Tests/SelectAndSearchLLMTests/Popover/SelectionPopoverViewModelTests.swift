@@ -3,7 +3,7 @@ import XCTest
 
 final class SelectionPopoverViewModelTests: XCTestCase {
     @MainActor
-    func testExplainModeLoadsInitialResponse() {
+    func testExplainModeLoadsInitialResponse() async {
         let viewModel = SelectionPopoverViewModel(
             selectionResult: SelectionCaptureResult(text: "sample", source: .accessibility),
             mode: .explain,
@@ -11,12 +11,14 @@ final class SelectionPopoverViewModelTests: XCTestCase {
             normalizer: SelectionTextNormalizer()
         )
 
+        await viewModel.loadExplainResponseIfNeeded()
+
         XCTAssertEqual(viewModel.titleText, "Explain Selection")
         XCTAssertEqual(viewModel.responseText, "explain:sample")
     }
 
     @MainActor
-    func testAskModeStartsWithoutResponseUntilPromptSubmitted() {
+    func testAskModeStartsWithoutResponseUntilPromptSubmitted() async {
         let viewModel = SelectionPopoverViewModel(
             selectionResult: SelectionCaptureResult(text: "sample", source: .clipboard),
             mode: .ask,
@@ -28,12 +30,12 @@ final class SelectionPopoverViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.responseText, "")
 
         viewModel.promptText = "  question  "
-        viewModel.submitPrompt()
+        await viewModel.submitPrompt()
         XCTAssertEqual(viewModel.responseText, "answer:question:sample")
     }
 
     @MainActor
-    func testAskModeIgnoresEmptyPrompt() {
+    func testAskModeIgnoresEmptyPrompt() async {
         let viewModel = SelectionPopoverViewModel(
             selectionResult: SelectionCaptureResult(text: "sample", source: .clipboard),
             mode: .ask,
@@ -42,18 +44,131 @@ final class SelectionPopoverViewModelTests: XCTestCase {
         )
 
         viewModel.promptText = "   "
-        viewModel.submitPrompt()
+        await viewModel.submitPrompt()
 
         XCTAssertEqual(viewModel.responseText, "")
+    }
+
+    @MainActor
+    func testViewModelSurfacesProviderErrors() async {
+        let viewModel = SelectionPopoverViewModel(
+            selectionResult: SelectionCaptureResult(text: "sample", source: .clipboard),
+            mode: .ask,
+            responseGenerator: FailingGenerator(),
+            normalizer: SelectionTextNormalizer()
+        )
+
+        viewModel.promptText = "question"
+        await viewModel.submitPrompt()
+
+        XCTAssertTrue(viewModel.responseText.contains("Error:"))
+    }
+
+    @MainActor
+    func testExplainModeRetriesAfterFailure() async {
+        let generator = FlakyExplainGenerator()
+        let viewModel = SelectionPopoverViewModel(
+            selectionResult: SelectionCaptureResult(text: "sample", source: .accessibility),
+            mode: .explain,
+            responseGenerator: generator,
+            normalizer: SelectionTextNormalizer()
+        )
+
+        await viewModel.loadExplainResponseIfNeeded()
+        XCTAssertTrue(viewModel.responseText.hasPrefix("Error:"))
+
+        await viewModel.loadExplainResponseIfNeeded()
+        XCTAssertEqual(viewModel.responseText, "explain:sample")
+    }
+
+    @MainActor
+    func testIsLoadingTracksConcurrentRequests() async throws {
+        let viewModel = SelectionPopoverViewModel(
+            selectionResult: SelectionCaptureResult(text: "sample", source: .clipboard),
+            mode: .ask,
+            responseGenerator: SequencedDelayGenerator(),
+            normalizer: SelectionTextNormalizer()
+        )
+
+        viewModel.promptText = "question"
+        let firstTask = Task { await viewModel.submitPrompt() }
+        let secondTask = Task { await viewModel.submitPrompt() }
+
+        try await Task.sleep(nanoseconds: 50_000_000)
+        XCTAssertTrue(viewModel.isLoading)
+
+        try await Task.sleep(nanoseconds: 120_000_000)
+        XCTAssertTrue(viewModel.isLoading)
+
+        await firstTask.value
+        await secondTask.value
+        XCTAssertFalse(viewModel.isLoading)
     }
 }
 
 private struct StubGenerator: SelectionResponseGenerating {
-    func explain(selectionText: String, source: SelectionSource) -> String {
+    func explain(selectionText: String, source: SelectionSource) async throws -> String {
         "explain:\(selectionText)"
     }
 
-    func answer(prompt: String, selectionText: String, source: SelectionSource) -> String {
+    func answer(prompt: String, selectionText: String, source: SelectionSource) async throws -> String {
         "answer:\(prompt):\(selectionText)"
+    }
+}
+
+private struct FailingGenerator: SelectionResponseGenerating {
+    func explain(selectionText: String, source: SelectionSource) async throws -> String {
+        throw LLMProviderError.invalidResponse
+    }
+
+    func answer(prompt: String, selectionText: String, source: SelectionSource) async throws -> String {
+        throw LLMProviderError.invalidResponse
+    }
+}
+
+private actor FlakyExplainState {
+    private var shouldFail = true
+
+    func nextShouldFail() -> Bool {
+        defer { shouldFail = false }
+        return shouldFail
+    }
+}
+
+private struct FlakyExplainGenerator: SelectionResponseGenerating {
+    private let state = FlakyExplainState()
+
+    func explain(selectionText: String, source: SelectionSource) async throws -> String {
+        if await state.nextShouldFail() {
+            throw LLMProviderError.invalidResponse
+        }
+        return "explain:\(selectionText)"
+    }
+
+    func answer(prompt: String, selectionText: String, source: SelectionSource) async throws -> String {
+        "answer:\(prompt):\(selectionText)"
+    }
+}
+
+private actor DelaySequencer {
+    private var callCount = 0
+
+    func nextDelay() -> UInt64 {
+        callCount += 1
+        return callCount == 1 ? 100_000_000 : 400_000_000
+    }
+}
+
+private struct SequencedDelayGenerator: SelectionResponseGenerating {
+    private let delaySequencer = DelaySequencer()
+
+    func explain(selectionText: String, source: SelectionSource) async throws -> String {
+        "explain:\(selectionText)"
+    }
+
+    func answer(prompt: String, selectionText: String, source: SelectionSource) async throws -> String {
+        let delay = await delaySequencer.nextDelay()
+        try await Task.sleep(nanoseconds: delay)
+        return "answer:\(prompt):\(selectionText)"
     }
 }
