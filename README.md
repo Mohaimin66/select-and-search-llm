@@ -4,6 +4,7 @@ System-wide text selection explainer for macOS. Select text anywhere (Safari, Ch
 
 ## Status
 Early development. See `ARCHITECTURE.md` and `SMOKE_TESTS.md`.
+- Settings now persist provider defaults/models/base URLs in UserDefaults and API keys in Keychain.
 
 ## MVP Goals
 - Menu bar app with global hotkeys.
@@ -22,6 +23,8 @@ Early development. See `ARCHITECTURE.md` and `SMOKE_TESTS.md`.
 - LM Studio supported (non-default).
 
 ## Provider Runtime Config (Current)
+Settings values take precedence. Environment variables are used as fallback for local runs and tests.
+
 - `SELECT_AND_SEARCH_PROVIDER`: `gemini` (default), `anthropic`, `openai`, `local`
 - Gemini:
   - `GEMINI_API_KEY`

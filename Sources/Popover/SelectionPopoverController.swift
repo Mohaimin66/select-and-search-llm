@@ -5,12 +5,17 @@ import SwiftUI
 final class SelectionPopoverController {
     private var panelController: NSWindowController?
 
-    func present(selectionResult: SelectionCaptureResult, mode: SelectionPopoverMode) {
+    func present(
+        selectionResult: SelectionCaptureResult,
+        mode: SelectionPopoverMode,
+        responseGenerator: SelectionResponseGenerating? = nil
+    ) {
         dismiss()
 
         let viewModel = SelectionPopoverViewModel(
             selectionResult: selectionResult,
-            mode: mode
+            mode: mode,
+            responseGenerator: responseGenerator ?? SelectionResponseGeneratorFactory.makeDefault()
         )
 
         let view = SelectionPopoverView(viewModel: viewModel) { [weak self] in

@@ -1,9 +1,9 @@
 import Foundation
 
-enum LLMProviderKind: Equatable, Sendable {
+enum LLMProviderKind: String, CaseIterable, Codable, Equatable, Sendable {
     case gemini
     case anthropic
-    case openAI
+    case openAI = "openai"
     case local
 }
 

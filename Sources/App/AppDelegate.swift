@@ -4,9 +4,11 @@ import AppKit
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusBarController: StatusBarController?
     private let accessibilityPermissionService: AccessibilityPermissionProviding
+    let settingsStore: AppSettingsStore
 
     override init() {
         accessibilityPermissionService = AccessibilityPermissionService()
+        settingsStore = AppSettingsStore()
         super.init()
     }
 
@@ -15,6 +17,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if !accessibilityPermissionService.isTrusted {
             _ = accessibilityPermissionService.requestIfNeeded()
         }
-        statusBarController = StatusBarController()
+        statusBarController = StatusBarController(settingsStore: settingsStore)
     }
 }

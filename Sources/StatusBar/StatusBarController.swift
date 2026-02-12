@@ -7,13 +7,15 @@ final class StatusBarController: NSObject {
     private let settingsWindowController: SettingsWindowController
     private let selectionCaptureService: SelectionCaptureService
     private let selectionPopoverController: SelectionPopoverController
+    private let settingsStore: AppSettingsStore
 
-    override init() {
+    init(settingsStore: AppSettingsStore) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         historyWindowController = HistoryWindowController()
-        settingsWindowController = SettingsWindowController()
+        settingsWindowController = SettingsWindowController(settingsStore: settingsStore)
         selectionCaptureService = SelectionCaptureService()
         selectionPopoverController = SelectionPopoverController()
+        self.settingsStore = settingsStore
         super.init()
         configureStatusItem()
     }
@@ -62,12 +64,20 @@ final class StatusBarController: NSObject {
 
     @objc private func explainSelection() {
         guard let result = captureSelectionOrAlert() else { return }
-        selectionPopoverController.present(selectionResult: result, mode: .explain)
+        selectionPopoverController.present(
+            selectionResult: result,
+            mode: .explain,
+            responseGenerator: makeResponseGenerator()
+        )
     }
 
     @objc private func askSelection() {
         guard let result = captureSelectionOrAlert() else { return }
-        selectionPopoverController.present(selectionResult: result, mode: .ask)
+        selectionPopoverController.present(
+            selectionResult: result,
+            mode: .ask,
+            responseGenerator: makeResponseGenerator()
+        )
     }
 
     @objc private func openHistory() {
@@ -100,5 +110,10 @@ final class StatusBarController: NSObject {
             return nil
         }
         return result
+    }
+
+    private func makeResponseGenerator() -> SelectionResponseGenerating {
+        let configuration = settingsStore.runtimeConfiguration()
+        return SelectionResponseGeneratorFactory.makeDefault(configuration: configuration)
     }
 }
