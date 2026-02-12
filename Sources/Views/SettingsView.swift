@@ -24,6 +24,23 @@ struct SettingsView: View {
                 TextField("Local base URL", text: binding(\.localBaseURL))
             }
 
+            Section("Global Hotkeys") {
+                KeyboardShortcutEditor(
+                    title: "Explain Selection",
+                    shortcut: binding(\.explainShortcut)
+                )
+                KeyboardShortcutEditor(
+                    title: "Ask About Selection",
+                    shortcut: binding(\.askShortcut)
+                )
+
+                if settingsStore.preferences.explainShortcut == settingsStore.preferences.askShortcut {
+                    Text("Explain and Ask use the same shortcut. Use different shortcuts to avoid conflicts.")
+                        .foregroundStyle(.orange)
+                        .font(.caption)
+                }
+            }
+
             Section("API Keys (Stored In Keychain)") {
                 SecureField("Gemini API key", text: $settingsStore.geminiAPIKey)
                 SecureField("Anthropic API key", text: $settingsStore.anthropicAPIKey)
@@ -46,5 +63,53 @@ struct SettingsView: View {
             get: { settingsStore.preferences[keyPath: keyPath] },
             set: { settingsStore.preferences[keyPath: keyPath] = $0 }
         )
+    }
+}
+
+private struct KeyboardShortcutEditor: View {
+    let title: String
+    @Binding var shortcut: KeyboardShortcut
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.subheadline)
+                .bold()
+
+            HStack {
+                Picker("Key", selection: $shortcut.key) {
+                    ForEach(ShortcutKey.allCases, id: \.self) { key in
+                        Text(key.displayName).tag(key)
+                    }
+                }
+                .frame(maxWidth: 120)
+
+                modifierToggle("Ctrl", modifier: .control)
+                modifierToggle("Opt", modifier: .option)
+                modifierToggle("Cmd", modifier: .command)
+                modifierToggle("Shift", modifier: .shift)
+            }
+
+            Text("Current: \(shortcut.displayLabel)")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func modifierToggle(_ title: String, modifier: ShortcutModifiers) -> some View {
+        Toggle(
+            title,
+            isOn: Binding(
+                get: { shortcut.modifiers.contains(modifier) },
+                set: { isOn in
+                    if isOn {
+                        shortcut.modifiers.insert(modifier)
+                    } else {
+                        shortcut.modifiers.remove(modifier)
+                    }
+                }
+            )
+        )
+        .toggleStyle(.checkbox)
     }
 }
